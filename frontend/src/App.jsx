@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
-import Paciente from './components/Paciente';
 import Perfil from './components/Perfil';
-import FormGlasgow from './components/FormGlasgow';
-import FormBraden from './components/FormBraden';
-import FormMorse from './components/FormMorse';
-import FormRass from './components/FormRass';
+import Paciente from './components/Paciente';
+import AvaliacaoForm from './components/AvaliacaoForm';
 import Historico from './components/Historico';
 import './App.css';
 
@@ -14,60 +11,69 @@ function App() {
   const [usuario, setUsuario] = useState(JSON.parse(localStorage.getItem('neurorisco_usuario')) || null);
   const [abaAtiva, setAbaAtiva] = useState('pacientes');
   const [pacienteSelecionado, setPacienteSelecionado] = useState(null);
+  
+  // Estado do Tema (Dark / Light)
+  const [darkMode, setDarkMode] = useState(localStorage.getItem('neurorisco_dark_mode') === 'true');
 
-  const handleLogout = () => {
-    setToken('');
-    setUsuario(null);
-    setPacienteSelecionado(null);
-    localStorage.removeItem('neurorisco_token');
-    localStorage.removeItem('neurorisco_usuario');
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('neurorisco_dark_mode', 'true');
+    } else {
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('neurorisco_dark_mode', 'false');
+    }
+  }, [darkMode]);
+
+  const toggleTema = () => {
+    setDarkMode(!darkMode);
   };
 
+  // Função centralizada de requisições que injeta o Token JWT com segurança
   const apiFetch = async (url, options = {}) => {
+    const currentToken = localStorage.getItem('neurorisco_token');
+
     const headers = {
       'Content-Type': 'application/json',
-      ...(options.headers || {}),
-      'Authorization': `Bearer ${token}`
+      ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
+      ...(options.headers || {})
     };
 
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(url, {
+      ...options,
+      headers
+    });
 
-    if (response.status === 401 || response.status === 403) {
-      handleLogout();
-      throw new Error('Sessão expirada. Faça login novamente.');
+    if (response.status === 401) {
+      // Sessão expirada ou token inválido
+      localStorage.removeItem('neurorisco_token');
+      localStorage.removeItem('neurorisco_usuario');
+      setToken('');
+      setUsuario(null);
+      alert('Sessão expirada ou não autorizada. Faça login novamente.');
+      throw new Error('Sessão expirada.');
     }
 
     return response;
   };
 
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('neurorisco_token', token);
-    } else {
-      localStorage.removeItem('neurorisco_token');
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (usuario) {
-      localStorage.setItem('neurorisco_usuario', JSON.stringify(usuario));
-    } else {
-      localStorage.removeItem('neurorisco_usuario');
-    }
-  }, [usuario]);
-
-  const handleLoginSucesso = (tokenRecebido, usuarioRecebido) => {
-    setToken(tokenRecebido);
-    setUsuario(usuarioRecebido);
+  const handleLoginSucesso = (dadosUsuario, novoToken) => {
+    localStorage.setItem('neurorisco_token', novoToken);
+    localStorage.setItem('neurorisco_usuario', JSON.stringify(dadosUsuario));
+    setToken(novoToken);
+    setUsuario(dadosUsuario);
     setAbaAtiva('pacientes');
   };
 
-  const handleAtualizarUsuario = (novoToken, novoUsuario) => {
-    setToken(novoToken);
-    setUsuario(novoUsuario);
+  const handleLogout = () => {
+    localStorage.removeItem('neurorisco_token');
+    localStorage.removeItem('neurorisco_usuario');
+    setToken('');
+    setUsuario(null);
+    setPacienteSelecionado(null);
   };
 
-  if (!token || !usuario) {
+  if (!token) {
     return <Login onLoginSucesso={handleLoginSucesso} />;
   }
 
@@ -79,9 +85,27 @@ function App() {
           <p>Apoio à Decisão Clínica e SAE em Neurologia</p>
         </div>
         <div className="header-user">
+          <button 
+            className="btn-theme-toggle" 
+            onClick={toggleTema}
+            title="Alternar Tema Claro/Escuro"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#fff',
+              padding: '0.5rem 0.85rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.85rem'
+            }}
+          >
+            {darkMode ? '☀️ Modo Claro' : '🌙 Modo Escuro'}
+          </button>
+
           <div className="user-info" onClick={() => setAbaAtiva('perfil')} title="Editar Perfil">
-            <span><strong>{usuario.nome}</strong></span>
-            <span>COREN: {usuario.coren}</span>
+            <span><strong>{usuario?.nome}</strong></span>
+            <span>COREN: {usuario?.coren}</span>
           </div>
           <button className="btn-logout" onClick={handleLogout}>Sair</button>
         </div>
@@ -89,50 +113,36 @@ function App() {
 
       {pacienteSelecionado && (
         <div className="paciente-ativo-banner">
-          <span>Paciente em atendimento: <strong>{pacienteSelecionado.iniciais}</strong> (Leito: <strong>{pacienteSelecionado.leito}</strong>)</span>
-          <button onClick={() => setPacienteSelecionado(null)} className="btn-limpar-paciente">Trocar / Desvincular</button>
+          <span>
+            <strong>Paciente em Atendimento:</strong> {pacienteSelecionado.iniciais} (Leito: {pacienteSelecionado.leito}) - {pacienteSelecionado.diagnostico}
+          </span>
+          <button className="btn-limpar-paciente" onClick={() => setPacienteSelecionado(null)}>
+            Trocar / Desselecionar
+          </button>
         </div>
       )}
 
       <nav className="app-nav">
-        <button
-          className={abaAtiva === 'pacientes' ? 'nav-btn active' : 'nav-btn'}
+        <button 
+          className={`nav-btn ${abaAtiva === 'pacientes' ? 'active' : ''}`} 
           onClick={() => setAbaAtiva('pacientes')}
         >
-          Pacientes
+          Pacientes (LGPD)
         </button>
-        <button
-          className={abaAtiva === 'glasgow' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setAbaAtiva('glasgow')}
+        <button 
+          className={`nav-btn ${abaAtiva === 'escalas' ? 'active' : ''}`} 
+          onClick={() => setAbaAtiva('escalas')}
         >
-          Glasgow
+          Avaliação de Escalas
         </button>
-        <button
-          className={abaAtiva === 'braden' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setAbaAtiva('braden')}
-        >
-          Braden
-        </button>
-        <button
-          className={abaAtiva === 'morse' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setAbaAtiva('morse')}
-        >
-          Morse
-        </button>
-        <button
-          className={abaAtiva === 'rass' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setAbaAtiva('rass')}
-        >
-          RASS
-        </button>
-        <button
-          className={abaAtiva === 'historico' ? 'nav-btn active' : 'nav-btn'}
+        <button 
+          className={`nav-btn ${abaAtiva === 'historico' ? 'active' : ''}`} 
           onClick={() => setAbaAtiva('historico')}
         >
           Histórico Geral
         </button>
-        <button
-          className={abaAtiva === 'perfil' ? 'nav-btn active' : 'nav-btn'}
+        <button 
+          className={`nav-btn ${abaAtiva === 'perfil' ? 'active' : ''}`} 
           onClick={() => setAbaAtiva('perfil')}
         >
           Meu Perfil
@@ -141,57 +151,42 @@ function App() {
 
       <main className="app-main">
         {abaAtiva === 'pacientes' && (
-          <Paciente
-            token={token}
-            apiFetch={apiFetch}
+          <Paciente 
+            token={token} 
+            apiFetch={apiFetch} 
+            usuario={usuario}
             onSelecionarPaciente={(pac) => {
               setPacienteSelecionado(pac);
-              setAbaAtiva('glasgow');
-            }}
+              setAbaAtiva('escalas');
+            }} 
           />
         )}
-        {abaAtiva === 'glasgow' && (
-          <FormGlasgow
-            token={token}
-            apiFetch={apiFetch}
-            pacienteSelecionado={pacienteSelecionado}
-            onAvaliacaoSalva={() => setAbaAtiva('historico')}
-          />
-        )}
-        {abaAtiva === 'braden' && (
-          <FormBraden
-            token={token}
-            apiFetch={apiFetch}
-            pacienteSelecionado={pacienteSelecionado}
-            onAvaliacaoSalva={() => setAbaAtiva('historico')}
-          />
-        )}
-        {abaAtiva === 'morse' && (
-          <FormMorse
-            token={token}
-            apiFetch={apiFetch}
-            pacienteSelecionado={pacienteSelecionado}
-            onAvaliacaoSalva={() => setAbaAtiva('historico')}
-          />
-        )}
-        {abaAtiva === 'rass' && (
-          <FormRass
-            token={token}
-            apiFetch={apiFetch}
-            pacienteSelecionado={pacienteSelecionado}
-            onAvaliacaoSalva={() => setAbaAtiva('historico')}
+        {abaAtiva === 'escalas' && (
+          <AvaliacaoForm 
+            token={token} 
+            apiFetch={apiFetch} 
+            usuario={usuario}
+            pacienteSelecionado={pacienteSelecionado} 
           />
         )}
         {abaAtiva === 'historico' && (
-          <Historico token={token} apiFetch={apiFetch} />
+          <Historico 
+            token={token} 
+            apiFetch={apiFetch} 
+          />
         )}
         {abaAtiva === 'perfil' && (
-          <Perfil token={token} apiFetch={apiFetch} onAtualizarUsuario={handleAtualizarUsuario} />
+          <Perfil 
+            token={token} 
+            apiFetch={apiFetch} 
+            usuario={usuario}
+            onAtualizarUsuario={(novoUser) => setUsuario(novoUser)} 
+          />
         )}
       </main>
 
       <footer className="app-footer">
-        <p>&copy; NeuroRisco - Sistematização da Assistência de Enfermagem em Neurologia e Neurointensivismo.</p>
+        <p>NeuroRisco &copy; {new Date().getFullYear()} - Sistema de Apoio à Decisão Clínica em Enfermagem Neurológica</p>
       </footer>
     </div>
   );
