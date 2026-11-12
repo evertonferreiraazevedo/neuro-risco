@@ -35,7 +35,7 @@ body.dark-mode {
   --badge-ativo-color: #34d399;
 }
 
-body, .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container, .app-header, .app-nav, .nav-btn, .paciente-form, .pacientes-filtro, .pacientes-table, .historico-item, .modal-content, input, select {
+body, .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container, .app-header, .app-nav, .nav-btn, .paciente-form, .pacientes-filtro, .pacientes-table, .historico-item, .modal-content, input, select, textarea {
   transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
@@ -60,7 +60,7 @@ body {
 }
 
 /* ================================================= */
-/* NOVO CABEÇALHO MODERNO & REFINADO                 */
+/* CABEÇALHO MODERNO & REFINADO                      */
 /* ================================================= */
 .app-header {
   background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
@@ -91,7 +91,6 @@ body {
   gap: 0.5rem;
 }
 
-/* Ícone sutil de neurologia/cérebro no título */
 .header-brand h1::before {
   content: "🧠";
   font-size: 1.35rem;
@@ -183,9 +182,8 @@ body {
 }
 
 /* ================================================= */
-/* FIM DO CABEÇALHO                                  */
+/* BANNER DE PACIENTE ATIVO                          */
 /* ================================================= */
-
 .paciente-ativo-banner {
   background-color: #eff6ff;
   border-bottom: 1px solid #bfdbfe;
@@ -219,6 +217,9 @@ body.dark-mode .paciente-ativo-banner {
   background-color: #dbeafe;
 }
 
+/* ================================================= */
+/* NAVEGAÇÃO ENTRE ABAS                              */
+/* ================================================= */
 .app-nav {
   background-color: var(--card-bg);
   display: flex;
@@ -271,6 +272,9 @@ body.dark-mode .paciente-ativo-banner {
   font-size: 0.85rem;
 }
 
+/* ================================================= */
+/* CONTAINERS E FORMULÁRIOS                          */
+/* ================================================= */
 .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container {
   background-color: var(--card-bg);
   padding: 2.5rem;
@@ -320,7 +324,7 @@ body.dark-mode .paciente-ativo-banner {
   color: var(--text-color);
 }
 
-.form-group input, .form-group select, .paciente-form input {
+.form-group input, .form-group select, .form-group textarea, .paciente-form input {
   padding: 0.75rem 1rem;
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -330,9 +334,31 @@ body.dark-mode .paciente-ativo-banner {
   color: var(--text-color);
 }
 
-.form-group input:focus, .form-group select:focus, .paciente-form input:focus {
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus, .paciente-form input:focus {
   border-color: var(--accent-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* ================================================= */
+/* CAMPO REFINADO DE OBSERVAÇÕES CLÍNICAS / PRONTUÁRIO */
+/* ================================================= */
+textarea, .form-group textarea, input[type="text"].prontuario-input {
+  font-family: 'Fira Code', 'Courier New', Courier, monospace !important;
+  font-size: 0.9rem !important;
+  line-height: 1.5 !important;
+  background-color: var(--bg-color) !important;
+  border: 1.5px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0.85rem 1rem !important;
+  color: var(--text-color) !important;
+  resize: vertical;
+  min-height: 110px;
+}
+
+textarea:focus, .form-group textarea:focus {
+  border-color: var(--accent-color) !important;
+  background-color: var(--card-bg) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
 }
 
 .form-row {
@@ -425,10 +451,14 @@ body.dark-mode .paciente-ativo-banner {
   font-size: 0.9rem;
 }
 
+/* ================================================= */
+/* TABELAS E BOTÕES DE AÇÃO REFINADOS                */
+/* ================================================= */
 .table-responsive {
   overflow-x: auto;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .pacientes-table, .historico-table {
@@ -439,16 +469,17 @@ body.dark-mode .paciente-ativo-banner {
 }
 
 .pacientes-table th, .pacientes-table td, .historico-table th, .historico-table td {
-  padding: 0.9rem 1.15rem;
+  padding: 1rem 1.15rem;
   border-bottom: 1px solid var(--border-color);
   font-size: 0.9rem;
   color: var(--text-color);
+  vertical-align: middle;
 }
 
 .pacientes-table th, .historico-table th {
   background-color: var(--bg-color);
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--text-muted);
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
@@ -459,12 +490,13 @@ body.dark-mode .paciente-ativo-banner {
 }
 
 .badge {
-  padding: 0.3rem 0.75rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 700;
   display: inline-block;
   text-align: center;
+  letter-spacing: 0.02em;
 }
 
 .badge.ativo {
@@ -479,56 +511,65 @@ body.dark-mode .paciente-ativo-banner {
   border: 1px solid var(--border-color);
 }
 
+/* Grupo de Botões de Ação na Tabela (Limpo, Compacto e Alinhado) */
 .actions-cell {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.4rem;
   flex-wrap: wrap;
+}
+
+.actions-cell button {
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.actions-cell button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .btn-select {
   background-color: #2563eb;
   color: white;
-  border: none;
-  padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
 }
 
 .btn-alta {
   background-color: #d97706;
   color: white;
-  border: none;
-  padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
 }
 
 .btn-reativar {
   background-color: #16a34a;
   color: white;
-  border: none;
-  padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
 }
 
 .btn-historico {
   background-color: #475569;
   color: white;
-  border: none;
-  padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
 }
 
+/* Destaque específico para o botão de gráfico e PDF na tabela */
+.actions-cell button:nth-child(3) {
+  background-color: #0284c7;
+}
+
+.actions-cell button:nth-child(4) {
+  background-color: #7c3aed;
+}
+
+/* ================================================= */
+/* MODAIS E CAIXAS DE RESULTADO                      */
+/* ================================================= */
 .resultado-box {
   background-color: var(--bg-color);
   border: 1.5px solid var(--border-color);
