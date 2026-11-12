@@ -1,0 +1,41 @@
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #f0f4f8; color: #1e293b; padding: 20px; }
+.container { max-width: 950px; margin: 0 auto; }
+
+/* Header e Navegacao */
+header { background-color: #0f4c81; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+header h1 { font-size: 1.4rem; }
+header p { font-size: 0.85rem; opacity: 0.9; }
+.btn-sair { background-color: #dc2626; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+/* Abas das Escalas */
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn { flex: 1; min-width: 140px; padding: 12px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; font-weight: 600; cursor: pointer; color: #475569; transition: 0.2s; }
+.tab-btn.ativa { background-color: #0f4c81; color: white; border-color: #0f4c81; }
+
+/* Cards e Formularios */
+.card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 20px; }
+.card h2 { font-size: 1.15rem; color: #0f4c81; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+.form-group { margin-bottom: 15px; }
+label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
+input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; }
+
+/* Caixas de Resultado */
+.resultado-box { background-color: #f8fafc; border-left: 5px solid #0f4c81; padding: 15px; margin: 20px 0; border-radius: 4px; }
+.resultado-box.alto-risco { border-left-color: #dc2626; background-color: #fef2f2; }
+.resultado-box.moderado-risco { border-left-color: #d97706; background-color: #fffbeb; }
+.resultado-box.baixo-risco { border-left-color: #16a34a; background-color: #f0fdf4; }
+
+.btn-salvar { background-color: #0f4c81; color: white; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; }
+.btn-salvar:hover { background-color: #0a355c; }
+
+/* Historico e Botoes de Acao */
+.item-historico { border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.acoes-historico { display: flex; gap: 8px; }
+.btn-copiar { background-color: #e2e8f0; color: #1e293b; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+.btn-excluir { background-color: #fee2e2; color: #b91c1c; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+
+/* Tela de Login */
+.login-container { max-width: 420px; margin: 50px auto; }
+.link-alternar { background: none; border: none; color: #0f4c81; text-decoration: underline; cursor: pointer; margin-top: 15px; display: block; width: 100%; text-align: center; font-size: 0.9rem; }
