@@ -1,196 +1,156 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-function FormMorse({ token, apiFetch, pacienteSelecionado, onAvaliacaoSalva }) {
-  const [iniciais, setIniciais] = useState('');
-  const [leito, setLeito] = useState('');
-  const [pacienteId, setPacienteId] = useState('');
-  const [historicoQuedas, setHistoricoQuedas] = useState(0);
-  const [diagnosticoSecundario, setDiagnosticoSecundario] = useState(0);
-  const [auxilioDeambulacao, setAuxilioDeambulacao] = useState(0);
-  const [terapiaIntravenosa, setTerapiaIntravenosa] = useState(0);
-  const [marcha, setMarcha] = useState(0);
-  const [estadoMental, setEstadoMental] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [mensagem, setMensagem] = useState('');
+export default function FormMorse({ token, apiFetch, usuario, pacienteSelecionado }) {
+  const [quedas, setQuedas] = useState('');
+  const [diagnostico, setDiagnostico] = useState('');
+  const [auxilio, setAuxilio] = useState('');
+  const [ev, setEv] = useState('');
+  const [marcha, setMarcha] = useState('');
+  const [consciencia, setConsciencia] = useState('');
+  const [observacoes, setObservacoes] = useState('');
+  const [sucesso, setSucesso] = useState('');
   const [erro, setErro] = useState('');
 
   const API_URL = import.meta.env.VITE_API_URL || 'https://neurorisco-api.onrender.com';
 
-  useEffect(() => {
-    if (pacienteSelecionado) {
-      setIniciais(pacienteSelecionado.iniciais || '');
-      setLeito(pacienteSelecionado.leito || '');
-      setPacienteId(pacienteSelecionado._id || '');
-    }
-  }, [pacienteSelecionado]);
+  const validar = () => quedas !== '' && diagnostico !== '' && auxilio !== '' && ev !== '' && marcha !== '' && consciencia !== '';
 
-  const pontuacaoTotal = Number(historicoQuedas) + Number(diagnosticoSecundario) + Number(auxilioDeambulacao) + Number(terapiaIntravenosa) + Number(marcha) + Number(estadoMental);
-
-  const obterClassificacao = (pontos) => {
-    if (pontos >= 51) return 'Risco Elevado de Queda';
-    if (pontos >= 25 && pontos <= 50) return 'Risco Moderado de Queda';
-    return 'Risco Baixo de Queda';
-  };
-
-  const gerarTextoProntuario = (pontos, classif) => {
-    return `AVALIAÇÃO DE ESCALA DE MORSE (RISCO DE QUEDA)
-Paciente: ${iniciais} | Leito: ${leito}
-Pontuação Total: ${pontos}
-Classificação: ${classif}
-Conduta SAE: Sinalização de leito com placa de risco de queda, grades elevadas permanentemente, orientação ao paciente e acompanhantes quanto à restrição de deambulação sem auxílio.`;
+  const calcular = () => {
+    const total = Number(quedas) + Number(diagnostico) + Number(auxilio) + Number(ev) + Number(marcha) + Number(consciencia);
+    let classificacao = 'Baixo Risco (0-24)';
+    if (total >= 45) classificacao = 'Alto Risco de Queda (≥ 45)';
+    else if (total >= 25) classificacao = 'Risco Moderado (25-44)';
+    return { pontuacao: total, classificacao };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMensagem('');
     setErro('');
+    setSucesso('');
 
-    if (!iniciais || !leito) {
-      setErro('Iniciais e leito são obrigatórios.');
+    if (!pacienteSelecionado) {
+      setErro('Nenhum paciente selecionado.');
+      return;
+    }
+    if (!validar()) {
+      setErro('Preencha todos os parâmetros da Escala de Morse.');
       return;
     }
 
-    const classificacao = obterClassificacao(pontuacaoTotal);
-    const textoProntuario = gerarTextoProntuario(pontuacaoTotal, classificacao);
-
-    const payload = {
-      pacienteId: pacienteId || null,
-      iniciais,
-      leito,
-      escala: 'MORSE',
-      pontuacao: {
-        total: pontuacaoTotal,
-        historicoQuedas: Number(historicoQuedas),
-        diagnosticoSecundario: Number(diagnosticoSecundario),
-        auxilioDeambulacao: Number(auxilioDeambulacao),
-        terapiaIntravenosa: Number(terapiaIntravenosa),
-        marcha: Number(marcha),
-        estadoMental: Number(estadoMental)
-      },
-      classificacao,
-      condutasSae: [
-        'Sinalização de risco de queda no leito',
-        'Manutenção das grades elevadas',
-        'Orientação rigorosa ao paciente e acompanhante'
-      ],
-      textoProntuario
-    };
+    const { pontuacao, classificacao } = calcular();
+    const textoProntuario = `[SAE - MORSE]\nPaciente: ${pacienteSelecionado.iniciais} | Leito: ${pacienteSelecionado.leito}\nPontuação Total: ${pontuacao}\nClassificação: ${classificacao}\nObs: ${observacoes || 'N/A'}\nAvaliador: ${usuario?.nome} (COREN: ${usuario?.coren})`;
 
     try {
-      setLoading(true);
       const response = await apiFetch(`${API_URL}/api/avaliacoes`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          pacienteId: pacienteSelecionado._id,
+          iniciais: pacienteSelecionado.iniciais,
+          leito: pacienteSelecionado.leito,
+          escala: 'MORSE',
+          pontuacao,
+          classificacao,
+          textoProntuario
+        })
       });
 
       const data = await response.json();
       if (response.ok) {
-        setMensagem('Avaliação de Morse salva com sucesso.');
-        if (onAvaliacaoSalva) onAvaliacaoSalva(data);
+        setSucesso('Avaliação de Morse salva!');
+        setQuedas(''); setDiagnostico(''); setAuxilio(''); setEv(''); setMarcha(''); setConsciencia(''); setObservacoes('');
       } else {
-        setErro(data.erro || 'Erro ao salvar avaliação.');
+        setErro(data.erro || 'Erro ao salvar.');
       }
     } catch (err) {
-      if (!err.message.includes('Sessão expirada')) {
-        setErro('Erro de conexão ao salvar avaliação.');
-      }
-    } finally {
-      setLoading(false);
+      if (!err.message.includes('Sessão expirada')) setErro('Erro de conexão.');
     }
   };
 
   return (
     <div className="form-escala-container">
-      <h2>Escala de Morse (Risco de Quedas)</h2>
-      
+      <h2>Escala de Morse (Risco de Queda)</h2>
+      {!pacienteSelecionado ? (
+        <div className="error-message">Selecione um paciente na aba Pacientes.</div>
+      ) : (
+        <div style={{ marginBottom: '1.5rem', background: 'var(--bg-color)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <p><strong>Paciente:</strong> {pacienteSelecionado.iniciais} | <strong>Leito:</strong> {pacienteSelecionado.leito}</p>
+        </div>
+      )}
+
       {erro && <div className="error-message">{erro}</div>}
-      {mensagem && <div className="success-message">{mensagem}</div>}
+      {sucesso && <div className="success-message">{sucesso}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div className="form-row">
-          <div className="form-group">
-            <label>Iniciais do Paciente</label>
-            <input
-              type="text"
-              value={iniciais}
-              onChange={(e) => setIniciais(e.target.value)}
-              placeholder="Ex: J.M.S."
-              required
-            />
+        <div className="form-group">
+          <label>Histórico de Quedas Recentes:</label>
+          <select value={quedas} onChange={(e) => setQuedas(e.target.value)} required>
+            <option value="" disabled>-- Selecione --</option>
+            <option value="25">Sim (25 pts)</option>
+            <option value="0">Não (0 pts)</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Diagnóstico Secundário:</label>
+          <select value={diagnostico} onChange={(e) => setDiagnostico(e.target.value)} required>
+            <option value="" disabled>-- Selecione --</option>
+            <option value="15">Sim (15 pts)</option>
+            <option value="0">Não (0 pts)</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Auxílio na Marcha:</label>
+          <select value={auxilio} onChange={(e) => setAuxilio(e.target.value)} required>
+            <option value="" disabled>-- Selecione --</option>
+            <option value="30">Muletas / Bengala / Andador (30 pts)</option>
+            <option value="15">Mobiliário / Apoio em paredes (15 pts)</option>
+            <option value="0">Nenhum / Acamado / Cadeira de rodas (0 pts)</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Terapia Endovenosa (EV):</label>
+          <select value={ev} onChange={(e) => setEv(e.target.value)} required>
+            <option value="" disabled>-- Selecione --</option>
+            <option value="20">Sim (20 pts)</option>
+            <option value="0">Não (0 pts)</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Marcha:</label>
+          <select value={marcha} onChange={(e) => setMarcha(e.target.value)} required>
+            <option value="" disabled>-- Selecione --</option>
+            <option value="20">Comprometida (20 pts)</option>
+            <option value="10">Fraca / Instável (10 pts)</option>
+            <option value="0">Normal / Acamado (0 pts)</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Estado Mental:</label>
+          <select value={consciencia} onChange={(e) => setConsciencia(e.target.value)} required>
+            <option value="" disabled>-- Selecione --</option>
+            <option value="15">Superestima capacidade / Esquece limitações (15 pts)</option>
+            <option value="0">Orientado / Consciência das limitações (0 pts)</option>
+          </select>
+        </div>
+
+        {validar() && (
+          <div className="resultado-box">
+            <h3>Resultado</h3>
+            <p><strong>Pontuação:</strong> {calcular().pontuacao} | <strong>Classificação:</strong> {calcular().classificacao}</p>
           </div>
-          <div className="form-group">
-            <label>Leito</label>
-            <input
-              type="text"
-              value={leito}
-              onChange={(e) => setLeito(e.target.value)}
-              placeholder="Ex: UTI-01"
-              required
-            />
-          </div>
-        </div>
+        )}
 
         <div className="form-group">
-          <label>Histórico de Quedas (Recente ou prévia)</label>
-          <select value={historicoQuedas} onChange={(e) => setHistoricoQuedas(Number(e.target.value))}>
-            <option value={25}>Sim (25 pontos)</option>
-            <option value={0}>Não (0 pontos)</option>
-          </select>
+          <label>Observações:</label>
+          <textarea rows="3" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
         </div>
 
-        <div className="form-group">
-          <label>Diagnóstico Secundário (Mais de um diagnóstico médico)</label>
-          <select value={diagnosticoSecundario} onChange={(e) => setDiagnosticoSecundario(Number(e.target.value))}>
-            <option value={15}>Sim (15 pontos)</option>
-            <option value={0}>Não (0 pontos)</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Auxílio na Deambulação</label>
-          <select value={auxilioDeambulacao} onChange={(e) => setAuxilioDeambulacao(Number(e.target.value))}>
-            <option value={30}>Nenhum / Acamado / Cadeira de rodas (0 pontos)</option>
-            <option value={15}>Muletas / Bengala / Andador (15 pontos)</option>
-            <option value={30}>Mobiliário / Paredes (30 pontos)</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Terapia Endovenosa / Heparinizado (Dispositivo endovenoso em uso)</label>
-          <select value={terapiaIntravenosa} onChange={(e) => setTerapiaIntravenosa(Number(e.target.value))}>
-            <option value={20}>Sim (20 pontos)</option>
-            <option value={0}>Não (0 pontos)</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Marcha</label>
-          <select value={marcha} onChange={(e) => setMarcha(Number(e.target.value))}>
-            <option value={0}>Normal / Acamado / Imóvel (0 pontos)</option>
-            <option value={10}>Fraca / Degenerativa (10 pontos)</option>
-            <option value={20}>Comprometida / Acidentada (20 pontos)</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Estado Mental (Consciência da própria capacidade)</label>
-          <select value={estadoMental} onChange={(e) => setEstadoMental(Number(e.target.value))}>
-            <option value={0}>Orientado quanto às próprias capacidades (0 pontos)</option>
-            <option value={15}>Superestima capacidade / Esquece limitações (15 pontos)</option>
-          </select>
-        </div>
-
-        <div className="resultado-box">
-          <h3>Resultado: {pontuacaoTotal} pontos</h3>
-          <p><strong>Classificação:</strong> {obterClassificacao(pontuacaoTotal)}</p>
-        </div>
-
-        <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? 'Salvando...' : 'Salvar Avaliação'}
-        </button>
+        <button type="submit" className="btn-primary" disabled={!pacienteSelecionado}>Salvar Avaliação</button>
       </form>
     </div>
   );
 }
-
-export default FormMorse;

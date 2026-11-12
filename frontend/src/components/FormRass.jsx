@@ -1,170 +1,115 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-function FormRass({ token, apiFetch, pacienteSelecionado, onAvaliacaoSalva }) {
-  const [iniciais, setIniciais] = useState('');
-  const [leito, setLeito] = useState('');
-  const [pacienteId, setPacienteId] = useState('');
-  const [pontos, setPontos] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [mensagem, setMensagem] = useState('');
+export default function FormRass({ token, apiFetch, usuario, pacienteSelecionado }) {
+  const [rassValor, setRassValor] = useState('');
+  const [observacoes, setObservacoes] = useState('');
+  const [sucesso, setSucesso] = useState('');
   const [erro, setErro] = useState('');
 
   const API_URL = import.meta.env.VITE_API_URL || 'https://neurorisco-api.onrender.com';
 
-  useEffect(() => {
-    if (pacienteSelecionado) {
-      setIniciais(pacienteSelecionado.iniciais || '');
-      setLeito(pacienteSelecionado.leito || '');
-      setPacienteId(pacienteSelecionado._id || '');
-    }
-  }, [pacienteSelecionado]);
+  const validar = () => rassValor !== '';
 
-  const obterDescricaoRass = (val) => {
-    const v = Number(val);
-    switch (v) {
-      case 4: return 'Combativo (Violento, perigo imediato para a equipe)';
-      case 3: return 'Muito Agitado (Puxa tubos ou cateteres, agressivo)';
-      case 2: return 'Agitado (Movimentos frequentes sem propósito, luta contra ventilador)';
-      case 1: return 'Inquieto (Ansioso, mas movimentos não agressivos ou vigorosos)';
-      case 0: return 'Alerta e Calmo';
-      case -1: return 'Sonolento (Não totalmente alerta, mas mantém despertar ao chamado verbal > 10s)';
-      case -2: return 'Sedação Leve (Desperta brevemente à voz com contato visual < 10s)';
-      case -3: return 'Sedação Moderada (Movimenta-se ou abre os olhos à voz, sem contato visual)';
-      case -4: return 'Sedação Profunda (Sem resposta à voz, mas movimenta-se ao estímulo físico)';
-      case -5: return 'Não Responde (Sem resposta à voz ou estímulo físico)';
-      default: return 'Alerta e Calmo';
-    }
-  };
-
-  const obterClassificacao = (val) => {
-    const v = Number(val);
-    if (v > 0) return 'Agitação Psicomotora';
-    if (v < 0) return 'Nível de Sedação / Depressão do Consciência';
-    return 'Neurologicamente Estável / Alerta';
-  };
-
-  const gerarTextoProntuario = (val, desc, classif) => {
-    return `AVALIAÇÃO DE ESCALA RASS (RICHMOND AGITATION-SEDATION SCALE)
-Paciente: ${iniciais} | Leito: ${leito}
-Pontuação: ${val > 0 ? `+${val}` : val} (${desc})
-Classificação: ${classif}
-Conduta SAE: Monitorização rigorosa de infusão de sedoanalgesia (se aplicável), vigilância de sinais de delirium ou agitação e manutenção de parâmetros ventilatórios seguros.`;
+  const calcular = () => {
+    const val = Number(rassValor);
+    let classificacao = 'Alerta e Calmo';
+    if (val >= 3) classificacao = 'Muito Agitado / Combativo';
+    else if (val === 2) classificacao = 'Agitado';
+    else if (val === 1) classificacao = 'Inquieto';
+    else if (val === -1) classificacao = 'Sonolento';
+    else if (val <= -2) classificacao = 'Sedado / Resposta Leve a Voz';
+    return { pontuacao: val, classificacao };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMensagem('');
     setErro('');
+    setSucesso('');
 
-    if (!iniciais || !leito) {
-      setErro('Iniciais e leito são obrigatórios.');
+    if (!pacienteSelecionado) {
+      setErro('Nenhum paciente selecionado.');
+      return;
+    }
+    if (!validar()) {
+      setErro('Selecione o nível RASS.');
       return;
     }
 
-    const desc = obterDescricaoRass(pontos);
-    const classificacao = obterClassificacao(pontos);
-    const textoProntuario = gerarTextoProntuario(pontos, desc, classificacao);
-
-    const payload = {
-      pacienteId: pacienteId || null,
-      iniciais,
-      leito,
-      escala: 'RASS',
-      pontuacao: {
-        total: Number(pontos),
-        descricao: desc
-      },
-      classificacao,
-      condutasSae: [
-        'Monitorização de sedoanalgesia',
-        'Avaliação horária de agitação/sedação',
-        'Prevenção de extubação acidental'
-      ],
-      textoProntuario
-    };
+    const { pontuacao, classificacao } = calcular();
+    const textoProntuario = `[SAE - RASS]\nPaciente: ${pacienteSelecionado.iniciais} | Leito: ${pacienteSelecionado.leito}\nPontuação RASS: ${pontuacao}\nClassificação: ${classificacao}\nObs: ${observacoes || 'N/A'}\nAvaliador: ${usuario?.nome} (COREN: ${usuario?.coren})`;
 
     try {
-      setLoading(true);
       const response = await apiFetch(`${API_URL}/api/avaliacoes`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          pacienteId: pacienteSelecionado._id,
+          iniciais: pacienteSelecionado.iniciais,
+          leito: pacienteSelecionado.leito,
+          escala: 'RASS',
+          pontuacao,
+          classificacao,
+          textoProntuario
+        })
       });
 
       const data = await response.json();
       if (response.ok) {
-        setMensagem('Avaliação RASS salva com sucesso.');
-        if (onAvaliacaoSalva) onAvaliacaoSalva(data);
+        setSucesso('Avaliação RASS salva!');
+        setRassValor(''); setObservacoes('');
       } else {
-        setErro(data.erro || 'Erro ao salvar avaliação.');
+        setErro(data.erro || 'Erro ao salvar.');
       }
     } catch (err) {
-      if (!err.message.includes('Sessão expirada')) {
-        setErro('Erro de conexão ao salvar avaliação.');
-      }
-    } finally {
-      setLoading(false);
+      if (!err.message.includes('Sessão expirada')) setErro('Erro de conexão.');
     }
   };
 
   return (
     <div className="form-escala-container">
-      <h2>Escala RASS (Richmond Agitation-Sedation Scale)</h2>
-      
+      <h2>Escala RASS (Agitação e Sedação)</h2>
+      {!pacienteSelecionado ? (
+        <div className="error-message">Selecione um paciente na aba Pacientes.</div>
+      ) : (
+        <div style={{ marginBottom: '1.5rem', background: 'var(--bg-color)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <p><strong>Paciente:</strong> {pacienteSelecionado.iniciais} | <strong>Leito:</strong> {pacienteSelecionado.leito}</p>
+        </div>
+      )}
+
       {erro && <div className="error-message">{erro}</div>}
-      {mensagem && <div className="success-message">{mensagem}</div>}
+      {sucesso && <div className="success-message">{sucesso}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div className="form-row">
-          <div className="form-group">
-            <label>Iniciais do Paciente</label>
-            <input
-              type="text"
-              value={iniciais}
-              onChange={(e) => setIniciais(e.target.value)}
-              placeholder="Ex: J.M.S."
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Leito</label>
-            <input
-              type="text"
-              value={leito}
-              onChange={(e) => setLeito(e.target.value)}
-              placeholder="Ex: UTI-01"
-              required
-            />
-          </div>
-        </div>
-
         <div className="form-group">
-          <label>Pontuação RASS</label>
-          <select value={pontos} onChange={(e) => setPontos(Number(e.target.value))}>
-            <option value={4}>+4 Combativo</option>
-            <option value={3}>+3 Muito Agitado</option>
-            <option value={2}>+2 Agitado</option>
-            <option value={1}>+1 Inquieto</option>
-            <option value={0}> 0 Alerta e Calmo</option>
-            <option value={-1}>-1 Sonolento</option>
-            <option value={-2}>-2 Sedação Leve</option>
-            <option value={-3}>-3 Sedação Moderada</option>
-            <option value={-4}>-4 Sedação Profunda</option>
-            <option value={-5}>-5 Não Responde</option>
+          <label>Nível RASS:</label>
+          <select value={rassValor} onChange={(e) => setRassValor(e.target.value)} required>
+            <option value="" disabled>-- Selecione --</option>
+            <option value="4">+4 Combativo (Violento, perigo imediato)</option>
+            <option value="3">+3 Muito Agitado (Puxa tubos/cateteres)</option>
+            <option value="2">+2 Agitado (Movimentos frequentes não coordenados)</option>
+            <option value="1">+1 Inquieto (Ansioso, sem agressividade)</option>
+            <option value="0">0 Alerta e Calmo</option>
+            <option value="-1">-1 Sonolento (Desperta à voz &gt; 10s)</option>
+            <option value="-2">-2 Sedação Leve (Desperta à voz brevemente &lt; 10s)</option>
+            <option value="-3">-3 Sedação Moderada (Movimento ou abertura ocular à voz)</option>
+            <option value="-4">-4 Sedação Profunda (Sem resposta à voz, movimento à dor)</option>
+            <option value="-5">-5 Sem Resposta (Sem resposta à voz ou dor)</option>
           </select>
         </div>
 
-        <div className="resultado-box">
-          <h3>Resultado: {pontos > 0 ? `+${pontos}` : pontos}</h3>
-          <p><strong>Descrição:</strong> {obterDescricaoRass(pontos)}</p>
-          <p><strong>Classificação:</strong> {obterClassificacao(pontos)}</p>
+        {validar() && (
+          <div className="resultado-box">
+            <h3>Resultado</h3>
+            <p><strong>Pontuação:</strong> {calcular().pontuacao} | <strong>Classificação:</strong> {calcular().classificacao}</p>
+          </div>
+        )}
+
+        <div className="form-group">
+          <label>Observações:</label>
+          <textarea rows="3" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
         </div>
 
-        <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? 'Salvando...' : 'Salvar Avaliação'}
-        </button>
+        <button type="submit" className="btn-primary" disabled={!pacienteSelecionado}>Salvar Avaliação</button>
       </form>
     </div>
   );
 }
-
-export default FormRass;

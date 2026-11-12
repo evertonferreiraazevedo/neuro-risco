@@ -2,17 +2,20 @@ import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Perfil from './components/Perfil';
 import Paciente from './components/Paciente';
-import AvaliacaoForm from './components/AvaliacaoForm';
 import Historico from './components/Historico';
+import FormGlasgow from './components/FormGlasgow';
+import FormBraden from './components/FormBraden';
+import FormMorse from './components/FormMorse';
+import FormRass from './components/FormRass';
 import './App.css';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('neurorisco_token') || '');
   const [usuario, setUsuario] = useState(JSON.parse(localStorage.getItem('neurorisco_usuario')) || null);
   const [abaAtiva, setAbaAtiva] = useState('pacientes');
+  const [escalaAtiva, setEscalaAtiva] = useState('glasgow'); // Sub-aba para as escalas
   const [pacienteSelecionado, setPacienteSelecionado] = useState(null);
   
-  // Estado do Tema (Dark / Light)
   const [darkMode, setDarkMode] = useState(localStorage.getItem('neurorisco_dark_mode') === 'true');
 
   useEffect(() => {
@@ -25,32 +28,24 @@ function App() {
     }
   }, [darkMode]);
 
-  const toggleTema = () => {
-    setDarkMode(!darkMode);
-  };
+  const toggleTema = () => setDarkMode(!darkMode);
 
-  // Função centralizada de requisições que injeta o Token JWT com segurança
   const apiFetch = async (url, options = {}) => {
     const currentToken = localStorage.getItem('neurorisco_token');
-
     const headers = {
       'Content-Type': 'application/json',
       ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
       ...(options.headers || {})
     };
 
-    const response = await fetch(url, {
-      ...options,
-      headers
-    });
+    const response = await fetch(url, { ...options, headers });
 
     if (response.status === 401) {
-      // Sessão expirada ou token inválido
       localStorage.removeItem('neurorisco_token');
       localStorage.removeItem('neurorisco_usuario');
       setToken('');
       setUsuario(null);
-      alert('Sessão expirada ou não autorizada. Faça login novamente.');
+      alert('Sessão expirada. Faça login novamente.');
       throw new Error('Sessão expirada.');
     }
 
@@ -85,25 +80,10 @@ function App() {
           <p>Apoio à Decisão Clínica e SAE em Neurologia</p>
         </div>
         <div className="header-user">
-          <button 
-            className="btn-theme-toggle" 
-            onClick={toggleTema}
-            title="Alternar Tema Claro/Escuro"
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              color: '#fff',
-              padding: '0.5rem 0.85rem',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '0.85rem'
-            }}
-          >
+          <button className="btn-theme-toggle" onClick={toggleTema}>
             {darkMode ? '☀️ Modo Claro' : '🌙 Modo Escuro'}
           </button>
-
-          <div className="user-info" onClick={() => setAbaAtiva('perfil')} title="Editar Perfil">
+          <div className="user-info" onClick={() => setAbaAtiva('perfil')}>
             <span><strong>{usuario?.nome}</strong></span>
             <span>COREN: {usuario?.coren}</span>
           </div>
@@ -122,32 +102,31 @@ function App() {
         </div>
       )}
 
+      {/* Menu de Navegação Principal */}
       <nav className="app-nav">
-        <button 
-          className={`nav-btn ${abaAtiva === 'pacientes' ? 'active' : ''}`} 
-          onClick={() => setAbaAtiva('pacientes')}
-        >
+        <button className={`nav-btn ${abaAtiva === 'pacientes' ? 'active' : ''}`} onClick={() => setAbaAtiva('pacientes')}>
           Pacientes (LGPD)
         </button>
-        <button 
-          className={`nav-btn ${abaAtiva === 'escalas' ? 'active' : ''}`} 
-          onClick={() => setAbaAtiva('escalas')}
-        >
-          Avaliação de Escalas
+        <button className={`nav-btn ${abaAtiva === 'escalas' ? 'active' : ''}`} onClick={() => setAbaAtiva('escalas')}>
+          Escalas Clínicas (SAE)
         </button>
-        <button 
-          className={`nav-btn ${abaAtiva === 'historico' ? 'active' : ''}`} 
-          onClick={() => setAbaAtiva('historico')}
-        >
+        <button className={`nav-btn ${abaAtiva === 'historico' ? 'active' : ''}`} onClick={() => setAbaAtiva('historico')}>
           Histórico Geral
         </button>
-        <button 
-          className={`nav-btn ${abaAtiva === 'perfil' ? 'active' : ''}`} 
-          onClick={() => setAbaAtiva('perfil')}
-        >
+        <button className={`nav-btn ${abaAtiva === 'perfil' ? 'active' : ''}`} onClick={() => setAbaAtiva('perfil')}>
           Meu Perfil
         </button>
       </nav>
+
+      {/* Sub-menu de Escalas (Aparece apenas quando a aba principal for 'escalas') */}
+      {abaAtiva === 'escalas' && (
+        <div style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 2.5rem', background: 'var(--card-bg)', borderBottom: '1px solid var(--border-color)', overflowX: 'auto' }}>
+          <button className={`nav-btn ${escalaAtiva === 'glasgow' ? 'active' : ''}`} onClick={() => setEscalaAtiva('glasgow')}>Glasgow</button>
+          <button className={`nav-btn ${escalaAtiva === 'braden' ? 'active' : ''}`} onClick={() => setEscalaAtiva('braden')}>Braden</button>
+          <button className={`nav-btn ${escalaAtiva === 'morse' ? 'active' : ''}`} onClick={() => setEscalaAtiva('morse')}>Morse</button>
+          <button className={`nav-btn ${escalaAtiva === 'rass' ? 'active' : ''}`} onClick={() => setEscalaAtiva('rass')}>RASS</button>
+        </div>
+      )}
 
       <main className="app-main">
         {abaAtiva === 'pacientes' && (
@@ -161,28 +140,18 @@ function App() {
             }} 
           />
         )}
+
         {abaAtiva === 'escalas' && (
-          <AvaliacaoForm 
-            token={token} 
-            apiFetch={apiFetch} 
-            usuario={usuario}
-            pacienteSelecionado={pacienteSelecionado} 
-          />
+          <>
+            {escalaAtiva === 'glasgow' && <FormGlasgow token={token} apiFetch={apiFetch} usuario={usuario} pacienteSelecionado={pacienteSelecionado} />}
+            {escalaAtiva === 'braden' && <FormBraden token={token} apiFetch={apiFetch} usuario={usuario} pacienteSelecionado={pacienteSelecionado} />}
+            {escalaAtiva === 'morse' && <FormMorse token={token} apiFetch={apiFetch} usuario={usuario} pacienteSelecionado={pacienteSelecionado} />}
+            {escalaAtiva === 'rass' && <FormRass token={token} apiFetch={apiFetch} usuario={usuario} pacienteSelecionado={pacienteSelecionado} />}
+          </>
         )}
-        {abaAtiva === 'historico' && (
-          <Historico 
-            token={token} 
-            apiFetch={apiFetch} 
-          />
-        )}
-        {abaAtiva === 'perfil' && (
-          <Perfil 
-            token={token} 
-            apiFetch={apiFetch} 
-            usuario={usuario}
-            onAtualizarUsuario={(novoUser) => setUsuario(novoUser)} 
-          />
-        )}
+
+        {abaAtiva === 'historico' && <Historico token={token} apiFetch={apiFetch} />}
+        {abaAtiva === 'perfil' && <Perfil token={token} apiFetch={apiFetch} usuario={usuario} onAtualizarUsuario={(u) => setUsuario(u)} />}
       </main>
 
       <footer className="app-footer">

@@ -354,6 +354,18 @@ app.get('/api/avaliacoes', auth, async (req, res) => {
   }
 });
 
+// Rota dedicada para buscar avaliações por paciente (compatível com o frontend)
+app.get('/api/avaliacoes/paciente/:pacienteId', auth, async (req, res) => {
+  try {
+    const { pacienteId } = req.params;
+    const avaliacoes = await Avaliacao.find({ pacienteId }).sort({ createdAt: -1 });
+    res.status(200).json(avaliacoes);
+  } catch (error) {
+    console.error('Erro ao buscar avaliações do paciente:', error);
+    res.status(500).json({ erro: 'Erro interno ao buscar avaliações do paciente.' });
+  }
+});
+
 app.post('/api/avaliacoes', auth, async (req, res) => {
   try {
     const {
