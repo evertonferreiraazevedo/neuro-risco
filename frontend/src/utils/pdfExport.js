@@ -50,8 +50,14 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   } else {
     const tableRows = avaliacoes.map((av) => {
       let pontuacaoStr = av.pontuacao;
+      
+      // Tratamento robusto para formatar o objeto do Glasgow ou outras escalas
       if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
-        pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
+        const total = av.pontuacao.total ?? '-';
+        const ao = av.pontuacao.ao ?? '-';
+        const rv = av.pontuacao.rv ?? '-';
+        const rm = av.pontuacao.rm ?? '-';
+        pontuacaoStr = `Total: ${total} (AO: ${ao}, RV: ${rv}, RM: ${rm})`;
       }
 
       return [
@@ -81,8 +87,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     try {
       const imgData = canvasElement.toDataURL('image/png');
       
-      // Verifica se há espaço na página atual, senão cria uma nova página
-      if (cursorY > 200) {
+      if (cursorY > 190) {
         doc.addPage();
         cursorY = 20;
       }
@@ -93,8 +98,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.text('Evolução Gráfica', 14, cursorY);
       cursorY += 6;
 
-      // Adiciona a imagem do gráfico no PDF (Largura: 180mm, Altura proporcional)
-      doc.addImage(imgData, 'PNG', 14, cursorY, 180, 90);
+      doc.addImage(imgData, 'PNG', 14, cursorY, 180, 85);
     } catch (err) {
       console.error('Erro ao anexar gráfico no PDF:', err);
     }
@@ -110,6 +114,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.text(`NeuroRisco - Sistema de Apoio à Decisão Clínica | Página ${i} de ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
   }
 
-  // Salva o arquivo PDF com o nome do paciente
+  // Salva o arquivo PDF
   doc.save(`Prontuario_${paciente.iniciais.replace(/\s+/g, '_')}_${paciente.leito}.pdf`);
 };
