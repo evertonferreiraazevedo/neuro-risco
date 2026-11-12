@@ -9,7 +9,8 @@ import FormMorse from './components/FormMorse';
 import FormRass from './components/FormRass';
 import Historico from './components/Historico';
 
-const API_URL = 'http://localhost:5000/api/avaliacoes';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = `${BASE_URL}/api/avaliacoes`;
 
 function App() {
   const [usuario, setUsuario] = useState(null);

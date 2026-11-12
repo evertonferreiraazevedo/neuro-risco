@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function Login({ onLoginSucesso }) {
   const [modoCadastro, setModoCadastro] = useState(false);
   const [nome, setNome] = useState('');
@@ -13,8 +15,8 @@ export default function Login({ onLoginSucesso }) {
     e.preventDefault();
     setErro('');
     const url = modoCadastro 
-      ? 'http://localhost:5000/api/auth/registrar' 
-      : 'http://localhost:5000/api/auth/login';
+      ? `${BASE_URL}/api/auth/registrar` 
+      : `${BASE_URL}/api/auth/login`;
 
     try {
       if (modoCadastro) {
