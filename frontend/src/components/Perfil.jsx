@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function Perfil({ token, onAtualizarUsuario }) {
+function Perfil({ token, apiFetch, onAtualizarUsuario }) {
   const [nome, setNome] = useState('');
   const [coren, setCoren] = useState('');
   const [email, setEmail] = useState('');
@@ -17,11 +17,7 @@ function Perfil({ token, onAtualizarUsuario }) {
     const buscarPerfil = async () => {
       try {
         setCarregando(true);
-        const response = await fetch(`${API_URL}/api/auth/perfil`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const response = await apiFetch(`${API_URL}/api/auth/perfil`);
         const data = await response.json();
         if (response.ok) {
           setNome(data.nome);
@@ -31,7 +27,9 @@ function Perfil({ token, onAtualizarUsuario }) {
           setErro(data.erro || 'Erro ao carregar perfil.');
         }
       } catch (err) {
-        setErro('Erro de conexão ao carregar perfil.');
+        if (!err.message.includes('Sessão expirada')) {
+          setErro('Erro de conexão ao carregar perfil.');
+        }
       } finally {
         setCarregando(false);
       }
@@ -57,12 +55,8 @@ function Perfil({ token, onAtualizarUsuario }) {
         payload.novaSenha = novaSenha;
       }
 
-      const response = await fetch(`${API_URL}/api/auth/perfil`, {
+      const response = await apiFetch(`${API_URL}/api/auth/perfil`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(payload)
       });
 
@@ -79,7 +73,9 @@ function Perfil({ token, onAtualizarUsuario }) {
         setErro(data.erro || 'Erro ao atualizar perfil.');
       }
     } catch (err) {
-      setErro('Erro de conexão ao atualizar perfil.');
+      if (!err.message.includes('Sessão expirada')) {
+        setErro('Erro de conexão ao atualizar perfil.');
+      }
     }
   };
 

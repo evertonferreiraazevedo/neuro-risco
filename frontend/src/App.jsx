@@ -12,8 +12,33 @@ import './App.css';
 function App() {
   const [token, setToken] = useState(localStorage.getItem('neurorisco_token') || '');
   const [usuario, setUsuario] = useState(JSON.parse(localStorage.getItem('neurorisco_usuario')) || null);
-  const [ abaAtiva, setAbaAtiva ] = useState('pacientes');
+  const [abaAtiva, setAbaAtiva] = useState('pacientes');
   const [pacienteSelecionado, setPacienteSelecionado] = useState(null);
+
+  const handleLogout = () => {
+    setToken('');
+    setUsuario(null);
+    setPacienteSelecionado(null);
+    localStorage.removeItem('neurorisco_token');
+    localStorage.removeItem('neurorisco_usuario');
+  };
+
+  const apiFetch = async (url, options = {}) => {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+      'Authorization': `Bearer ${token}`
+    };
+
+    const response = await fetch(url, { ...options, headers });
+
+    if (response.status === 401 || response.status === 403) {
+      handleLogout();
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
+
+    return response;
+  };
 
   useEffect(() => {
     if (token) {
@@ -35,14 +60,6 @@ function App() {
     setToken(tokenRecebido);
     setUsuario(usuarioRecebido);
     setAbaAtiva('pacientes');
-  };
-
-  const handleLogout = () => {
-    setToken('');
-    setUsuario(null);
-    setPacienteSelecionado(null);
-    localStorage.removeItem('neurorisco_token');
-    localStorage.removeItem('neurorisco_usuario');
   };
 
   const handleAtualizarUsuario = (novoToken, novoUsuario) => {
@@ -126,6 +143,7 @@ function App() {
         {abaAtiva === 'pacientes' && (
           <Paciente
             token={token}
+            apiFetch={apiFetch}
             onSelecionarPaciente={(pac) => {
               setPacienteSelecionado(pac);
               setAbaAtiva('glasgow');
@@ -135,6 +153,7 @@ function App() {
         {abaAtiva === 'glasgow' && (
           <FormGlasgow
             token={token}
+            apiFetch={apiFetch}
             pacienteSelecionado={pacienteSelecionado}
             onAvaliacaoSalva={() => setAbaAtiva('historico')}
           />
@@ -142,6 +161,7 @@ function App() {
         {abaAtiva === 'braden' && (
           <FormBraden
             token={token}
+            apiFetch={apiFetch}
             pacienteSelecionado={pacienteSelecionado}
             onAvaliacaoSalva={() => setAbaAtiva('historico')}
           />
@@ -149,6 +169,7 @@ function App() {
         {abaAtiva === 'morse' && (
           <FormMorse
             token={token}
+            apiFetch={apiFetch}
             pacienteSelecionado={pacienteSelecionado}
             onAvaliacaoSalva={() => setAbaAtiva('historico')}
           />
@@ -156,15 +177,16 @@ function App() {
         {abaAtiva === 'rass' && (
           <FormRass
             token={token}
+            apiFetch={apiFetch}
             pacienteSelecionado={pacienteSelecionado}
             onAvaliacaoSalva={() => setAbaAtiva('historico')}
           />
         )}
         {abaAtiva === 'historico' && (
-          <Historico token={token} />
+          <Historico token={token} apiFetch={apiFetch} />
         )}
         {abaAtiva === 'perfil' && (
-          <Perfil token={token} onAtualizarUsuario={handleAtualizarUsuario} />
+          <Perfil token={token} apiFetch={apiFetch} onAtualizarUsuario={handleAtualizarUsuario} />
         )}
       </main>
 

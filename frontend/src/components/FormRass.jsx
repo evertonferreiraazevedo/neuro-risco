@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function FormRass({ token, pacienteSelecionado, onAvaliacaoSalva }) {
+function FormRass({ token, apiFetch, pacienteSelecionado, onAvaliacaoSalva }) {
   const [iniciais, setIniciais] = useState('');
   const [leito, setLeito] = useState('');
   const [pacienteId, setPacienteId] = useState('');
@@ -85,12 +85,8 @@ Conduta SAE: Monitorização rigorosa de infusão de sedoanalgesia (se aplicáve
 
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/avaliacoes`, {
+      const response = await apiFetch(`${API_URL}/api/avaliacoes`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(payload)
       });
 
@@ -102,7 +98,9 @@ Conduta SAE: Monitorização rigorosa de infusão de sedoanalgesia (se aplicáve
         setErro(data.erro || 'Erro ao salvar avaliação.');
       }
     } catch (err) {
-      setErro('Erro de conexão ao salvar avaliação.');
+      if (!err.message.includes('Sessão expirada')) {
+        setErro('Erro de conexão ao salvar avaliação.');
+      }
     } finally {
       setLoading(false);
     }

@@ -233,7 +233,7 @@ app.put('/api/pacientes/:id', auth, async (req, res) => {
     if (iniciais) paciente.iniciais = iniciais;
     if (leito) paciente.leito = leito;
     if (diagnostico) paciente.diagnostico = diagnostico;
-    
+
     if (status && status !== paciente.status) {
       paciente.status = status.toUpperCase();
       if (paciente.status === 'ALTA') {
@@ -365,6 +365,122 @@ app.delete('/api/avaliacoes/:id', auth, async (req, res) => {
   } catch (error) {
     console.error('Erro ao remover avaliação:', error);
     res.status(500).json({ erro: 'Erro interno ao remover avaliação.' });
+  }
+});
+
+
+app.post('/api/pacientes', auth, async (req, res) => {
+  try {
+    const { iniciais, leito, diagnostico } = req.body;
+    if (!iniciais || !leito || !diagnostico) {
+      return res.status(400).json({ erro: 'Iniciais, leito e diagnóstico são obrigatórios.' });
+    }
+
+    const novoPaciente = new Paciente({
+      iniciais,
+      leito: leito.trim().toUpperCase(),
+      diagnostico,
+      status: 'ATIVO',
+      cadastradoPor: req.usuario.id
+    });
+
+    await novoPaciente.save();
+    res.status(201).json(novoPaciente);
+  } catch (error) {
+    // Tratamento específico para o Erro E11000 (Chave Duplicada no MongoDB)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        erro: 'Já existe um paciente ATIVO alocado neste leito. Verifique o leito informado.'
+      });
+    }
+
+    console.error('Erro ao cadastrar paciente:', error);
+    res.status(500).json({ erro: 'Erro interno ao cadastrar paciente.' });
+  }
+});
+
+app.put('/api/pacientes/:id', auth, async (req, res) => {
+  try {
+    const { iniciais, leito, diagnostico, status } = req.body;
+    const paciente = await Paciente.findById(req.params.id);
+
+    if (!paciente) {
+      return res.status(404).json({ erro: 'Paciente não encontrado.' });
+    }
+
+    const novoStatus = status ? status.toUpperCase() : paciente.status;
+    const novoLeito = leito ? leito.trim().toUpperCase() : paciente.leito;
+
+    // Se o paciente for ficar ativo, verificar se o leito já está ocupado por outro ID
+    if (novoStatus === 'ATIVO') {
+      const leitoOcupado = await Paciente.findOne({
+        leito: novoLeito,
+        status: 'ATIVO',
+        _id: { $ne: paciente._id }
+      });
+      if (leitoOcupado) {
+        return res.status(400).json({ erro: `O leito ${novoLeito} já está ocupado por outro paciente ativo.` });
+      }
+    }
+
+    if (iniciais) paciente.iniciais = iniciais;
+    paciente.leito = novoLeito;
+    if (diagnostico) paciente.diagnostico = diagnostico;
+
+    if (novoStatus !== paciente.status) {
+      paciente.status = novoStatus;
+      if (paciente.status === 'ALTA') {
+        paciente.dataAlta = new Date();
+      } else {
+        paciente.dataAlta = null;
+      }
+    }
+
+    paciente.atualizadoPor = req.usuario.id;
+    await paciente.save();
+
+    res.status(200).json(paciente);
+  } catch (error) {
+    console.error('Erro ao atualizar paciente:', error);
+    res.status(500).json({ erro: 'Erro interno ao atualizar paciente.' });
+  }
+});
+
+app.patch('/api/pacientes/:id/status', auth, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!status || !['ATIVO', 'ALTA'].includes(status.toUpperCase())) {
+      return res.status(400).json({ erro: 'Status inválido. Utilize ATIVO ou ALTA.' });
+    }
+
+    const paciente = await Paciente.findById(req.params.id);
+    if (!paciente) {
+      return res.status(404).json({ erro: 'Paciente não encontrado.' });
+    }
+
+    const novoStatus = status.toUpperCase();
+
+    // Se estiver reativando, verificar se o leito já foi ocupado por outro paciente
+    if (novoStatus === 'ATIVO') {
+      const leitoOcupado = await Paciente.findOne({
+        leito: paciente.leito,
+        status: 'ATIVO',
+        _id: { $ne: paciente._id }
+      });
+      if (leitoOcupado) {
+        return res.status(400).json({ erro: `Não é possível reativar. O leito ${paciente.leito} já está ocupado por outro paciente ativo.` });
+      }
+    }
+
+    paciente.status = novoStatus;
+    paciente.dataAlta = paciente.status === 'ALTA' ? new Date() : null;
+    paciente.atualizadoPor = req.usuario.id;
+
+    await paciente.save();
+    res.status(200).json(paciente);
+  } catch (error) {
+    console.error('Erro ao alterar status do paciente:', error);
+    res.status(500).json({ erro: 'Erro interno ao alterar status.' });
   }
 });
 

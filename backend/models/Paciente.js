@@ -52,6 +52,13 @@ const PacienteSchema = new mongoose.Schema(
   }
 );
 
-PacienteSchema.index({ status: 1, leito: 1 });
+// Índice único parcial: garante que o leito seja único estritamente para pacientes ATIVOS
+PacienteSchema.index(
+  { leito: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: 'ATIVO' }
+  }
+);
 
 module.exports = mongoose.model('Paciente', PacienteSchema);

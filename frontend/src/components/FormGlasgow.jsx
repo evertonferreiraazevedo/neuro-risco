@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function FormGlasgow({ token, pacienteSelecionado, onAvaliacaoSalva }) {
+function FormGlasgow({ token, apiFetch, pacienteSelecionado, onAvaliacaoSalva }) {
   const [iniciais, setIniciais] = useState('');
   const [leito, setLeito] = useState('');
   const [pacienteId, setPacienteId] = useState('');
@@ -36,7 +36,7 @@ function FormGlasgow({ token, pacienteSelecionado, onAvaliacaoSalva }) {
 
   const obterClassificacao = (pontos) => {
     if (pontos >= 13 && pontos <= 15) return 'Traumatismo Cranioencefálico (TCE) Leve';
-    if (pontos >= 9 && points <= 12) return 'Traumatismo Cranioencefálico (TCE) Moderado';
+    if (pontos >= 9 && pontos <= 12) return 'Traumatismo Cranioencefálico (TCE) Moderado';
     return 'Traumatismo Cranioencefálico (TCE) Grave';
   };
 
@@ -85,12 +85,8 @@ Conduta SAE: Monitorização neurológica rigorosa de pupilas e nível de consci
 
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/avaliacoes`, {
+      const response = await apiFetch(`${API_URL}/api/avaliacoes`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(payload)
       });
 
@@ -102,7 +98,9 @@ Conduta SAE: Monitorização neurológica rigorosa de pupilas e nível de consci
         setErro(data.erro || 'Erro ao salvar avaliação.');
       }
     } catch (err) {
-      setErro('Erro de conexão ao salvar avaliação.');
+      if (!err.message.includes('Sessão expirada')) {
+        setErro('Erro de conexão ao salvar avaliação.');
+      }
     } finally {
       setLoading(false);
     }
