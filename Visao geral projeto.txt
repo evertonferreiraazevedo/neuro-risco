@@ -42,3 +42,6 @@ NeuroRisco
     -vite.config.js
 -.gitignore
 -readme.md
+
+render: https://neurorisco-api.onrender.com
+vercel: https://neuro-risco.vercel.app/

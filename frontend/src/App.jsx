@@ -1,120 +1,176 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import './App.css';
-
+import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
+import Paciente from './components/Paciente';
+import Perfil from './components/Perfil';
 import FormGlasgow from './components/FormGlasgow';
 import FormBraden from './components/FormBraden';
 import FormMorse from './components/FormMorse';
 import FormRass from './components/FormRass';
 import Historico from './components/Historico';
-
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_URL = `${BASE_URL}/api/avaliacoes`;
+import './App.css';
 
 function App() {
-  const [usuario, setUsuario] = useState(null);
-  const [token, setToken] = useState(null);
-  const [abaAtiva, setAbaAtiva] = useState('GLASGOW_P');
-  const [historico, setHistorico] = useState([]);
+  const [token, setToken] = useState(localStorage.getItem('neurorisco_token') || '');
+  const [usuario, setUsuario] = useState(JSON.parse(localStorage.getItem('neurorisco_usuario')) || null);
+  const [ abaAtiva, setAbaAtiva ] = useState('pacientes');
+  const [pacienteSelecionado, setPacienteSelecionado] = useState(null);
 
-  // Recupera sessao salva caso a pagina seja atualizada
   useEffect(() => {
-    const tokenSalvo = localStorage.getItem('token');
-    const usuarioSalvo = localStorage.getItem('usuario');
-    if (tokenSalvo && usuarioSalvo) {
-      setToken(tokenSalvo);
-      setUsuario(JSON.parse(usuarioSalvo));
+    if (token) {
+      localStorage.setItem('neurorisco_token', token);
+    } else {
+      localStorage.removeItem('neurorisco_token');
     }
-  }, []);
-
-  // Carrega historico sempre que o token estiver disponivel
-  useEffect(() => {
-    if (token) carregarHistorico();
   }, [token]);
 
-  const carregarHistorico = async () => {
-    try {
-      const res = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setHistorico(res.data);
-    } catch (err) {
-      if (err.response?.status === 401) handleLogout();
+  useEffect(() => {
+    if (usuario) {
+      localStorage.setItem('neurorisco_usuario', JSON.stringify(usuario));
+    } else {
+      localStorage.removeItem('neurorisco_usuario');
     }
-  };
+  }, [usuario]);
 
-  const handleSalvarAvaliacao = async (dados) => {
-    try {
-      await axios.post(API_URL, dados, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert('Avaliacao registrada com sucesso!');
-      carregarHistorico();
-    } catch (err) {
-      alert('Erro ao salvar avaliacao.');
-    }
-  };
-
-  const handleExcluirAvaliacao = async (id) => {
-    if (!window.confirm('Deseja realmente excluir este registro?')) return;
-    try {
-      await axios.delete(`${API_URL}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      carregarHistorico();
-    } catch (err) {
-      alert('Erro ao excluir.');
-    }
+  const handleLoginSucesso = (tokenRecebido, usuarioRecebido) => {
+    setToken(tokenRecebido);
+    setUsuario(usuarioRecebido);
+    setAbaAtiva('pacientes');
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
+    setToken('');
     setUsuario(null);
-    setToken(null);
-    setHistorico([]);
+    setPacienteSelecionado(null);
+    localStorage.removeItem('neurorisco_token');
+    localStorage.removeItem('neurorisco_usuario');
   };
 
-  // Se nao estiver logado, exibe apenas a tela de Login
+  const handleAtualizarUsuario = (novoToken, novoUsuario) => {
+    setToken(novoToken);
+    setUsuario(novoUsuario);
+  };
+
   if (!token || !usuario) {
-    return <Login onLoginSucesso={(user, tok) => { setUsuario(user); setToken(tok); }} />;
+    return <Login onLoginSucesso={handleLoginSucesso} />;
   }
 
   return (
-    <div className="container">
-      <header>
-        <div>
-          <h1>NeuroRisco - Enfermagem</h1>
-          <p>Enf. {usuario.nome} ({usuario.coren})</p>
+    <div className="app-container">
+      <header className="app-header">
+        <div className="header-brand">
+          <h1>NeuroRisco</h1>
+          <p>Apoio à Decisão Clínica e SAE em Neurologia</p>
         </div>
-        <button type="button" className="btn-sair" onClick={handleLogout}>Sair</button>
+        <div className="header-user">
+          <div className="user-info" onClick={() => setAbaAtiva('perfil')} title="Editar Perfil">
+            <span><strong>{usuario.nome}</strong></span>
+            <span>COREN: {usuario.coren}</span>
+          </div>
+          <button className="btn-logout" onClick={handleLogout}>Sair</button>
+        </div>
       </header>
 
-      {/* MENU DE ABAS DAS ESCALAS */}
-      <div className="tabs">
-        <button className={`tab-btn ${abaAtiva === 'GLASGOW_P' ? 'ativa' : ''}`} onClick={() => setAbaAtiva('GLASGOW_P')}>
-          Glasgow-P
-        </button>
-        <button className={`tab-btn ${abaAtiva === 'BRADEN' ? 'ativa' : ''}`} onClick={() => setAbaAtiva('BRADEN')}>
-          Escala de Braden
-        </button>
-        <button className={`tab-btn ${abaAtiva === 'MORSE' ? 'ativa' : ''}`} onClick={() => setAbaAtiva('MORSE')}>
-          Escala de Morse
-        </button>
-        <button className={`tab-btn ${abaAtiva === 'RASS' ? 'ativa' : ''}`} onClick={() => setAbaAtiva('RASS')}>
-          Escala RASS
-        </button>
-      </div>
+      {pacienteSelecionado && (
+        <div className="paciente-ativo-banner">
+          <span>Paciente em atendimento: <strong>{pacienteSelecionado.iniciais}</strong> (Leito: <strong>{pacienteSelecionado.leito}</strong>)</span>
+          <button onClick={() => setPacienteSelecionado(null)} className="btn-limpar-paciente">Trocar / Desvincular</button>
+        </div>
+      )}
 
-      {/* FORMULARIO DA ESCALA SELECIONADA */}
-      {abaAtiva === 'GLASGOW_P' && <FormGlasgow onSalvar={handleSalvarAvaliacao} />}
-      {abaAtiva === 'BRADEN' && <FormBraden onSalvar={handleSalvarAvaliacao} />}
-      {abaAtiva === 'MORSE' && <FormMorse onSalvar={handleSalvarAvaliacao} />}
-      {abaAtiva === 'RASS' && <FormRass onSalvar={handleSalvarAvaliacao} />}
+      <nav className="app-nav">
+        <button
+          className={abaAtiva === 'pacientes' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setAbaAtiva('pacientes')}
+        >
+          Pacientes
+        </button>
+        <button
+          className={abaAtiva === 'glasgow' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setAbaAtiva('glasgow')}
+        >
+          Glasgow
+        </button>
+        <button
+          className={abaAtiva === 'braden' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setAbaAtiva('braden')}
+        >
+          Braden
+        </button>
+        <button
+          className={abaAtiva === 'morse' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setAbaAtiva('morse')}
+        >
+          Morse
+        </button>
+        <button
+          className={abaAtiva === 'rass' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setAbaAtiva('rass')}
+        >
+          RASS
+        </button>
+        <button
+          className={abaAtiva === 'historico' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setAbaAtiva('historico')}
+        >
+          Histórico Geral
+        </button>
+        <button
+          className={abaAtiva === 'perfil' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setAbaAtiva('perfil')}
+        >
+          Meu Perfil
+        </button>
+      </nav>
 
-      {/* HISTORICO UNIFICADO */}
-      <Historico lista={historico} onExcluir={handleExcluirAvaliacao} />
+      <main className="app-main">
+        {abaAtiva === 'pacientes' && (
+          <Paciente
+            token={token}
+            onSelecionarPaciente={(pac) => {
+              setPacienteSelecionado(pac);
+              setAbaAtiva('glasgow');
+            }}
+          />
+        )}
+        {abaAtiva === 'glasgow' && (
+          <FormGlasgow
+            token={token}
+            pacienteSelecionado={pacienteSelecionado}
+            onAvaliacaoSalva={() => setAbaAtiva('historico')}
+          />
+        )}
+        {abaAtiva === 'braden' && (
+          <FormBraden
+            token={token}
+            pacienteSelecionado={pacienteSelecionado}
+            onAvaliacaoSalva={() => setAbaAtiva('historico')}
+          />
+        )}
+        {abaAtiva === 'morse' && (
+          <FormMorse
+            token={token}
+            pacienteSelecionado={pacienteSelecionado}
+            onAvaliacaoSalva={() => setAbaAtiva('historico')}
+          />
+        )}
+        {abaAtiva === 'rass' && (
+          <FormRass
+            token={token}
+            pacienteSelecionado={pacienteSelecionado}
+            onAvaliacaoSalva={() => setAbaAtiva('historico')}
+          />
+        )}
+        {abaAtiva === 'historico' && (
+          <Historico token={token} />
+        )}
+        {abaAtiva === 'perfil' && (
+          <Perfil token={token} onAtualizarUsuario={handleAtualizarUsuario} />
+        )}
+      </main>
+
+      <footer className="app-footer">
+        <p>&copy; NeuroRisco - Sistematização da Assistência de Enfermagem em Neurologia e Neurointensivismo.</p>
+      </footer>
     </div>
   );
 }

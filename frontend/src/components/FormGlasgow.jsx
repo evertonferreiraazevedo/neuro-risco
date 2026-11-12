@@ -1,81 +1,238 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function FormGlasgow({ onSalvar }) {
-  const [pacienteIniciais, setPacienteIniciais] = useState('');
+function FormGlasgow({ token, pacienteSelecionado, onAvaliacaoSalva }) {
+  const [iniciais, setIniciais] = useState('');
   const [leito, setLeito] = useState('');
+  const [pacienteId, setPacienteId] = useState('');
   const [ocular, setOcular] = useState(4);
   const [verbal, setVerbal] = useState(5);
   const [motora, setMotora] = useState(6);
-  const [pupila, setPupila] = useState(0);
-  const [observacoes, setObservacoes] = useState('');
+  const [isPediatrico, setIsPediatrico] = useState(false);
+  const [respostaOcularPed, setRespostaOcularPed] = useState(4);
+  const [respostaVerbalPed, setRespostaVerbalPed] = useState(5);
+  const [respostaMotoraPed, setRespostaMotoraPed] = useState(6);
+  const [loading, setLoading] = useState(false);
+  const [mensagem, setMensagem] = useState('');
+  const [erro, setErro] = useState('');
 
-  const pontuacaoFinal = (Number(ocular) + Number(verbal) + Number(motora)) - Number(pupila);
+  const API_URL = import.meta.env.VITE_API_URL || 'https://neurorisco-api.onrender.com';
 
-  const obterClassificacao = (nota) => {
-    if (nota <= 8) return { texto: 'Grave / Coma (Risco Critico)', classe: 'alto-risco', condutas: ['Avaliar via aerea definitiva (IOT)', 'Monitorizacao neurologica horaria', 'Cabeceira a 30 graus e alinhamento cervical', 'Comunicar equipe medica imediatamente'] };
-    if (nota <= 12) return { texto: 'Moderado (Risco Elevado)', classe: 'moderado-risco', condutas: ['Reavaliar nivel de consciencia e pupilas a cada 2h', 'Checar protocolo de disfagia antes de dieta oral', 'Grades elevadas e prevencao de quedas'] };
-    return { texto: 'Leve (Baixo Risco)', classe: 'baixo-risco', condutas: ['Manter vigilancia neurologica de rotina', 'Orientar sobre risco de quedas'] };
+  useEffect(() => {
+    if (pacienteSelecionado) {
+      setIniciais(pacienteSelecionado.iniciais || '');
+      setLeito(pacienteSelecionado.leito || '');
+      setPacienteId(pacienteSelecionado._id || '');
+    }
+  }, [pacienteSelecionado]);
+
+  const calcularPontuacao = () => {
+    if (isPediatrico) {
+      return Number(respostaOcularPed) + Number(respostaVerbalPed) + Number(respostaMotoraPed);
+    }
+    return Number(ocular) + Number(verbal) + Number(motora);
   };
 
-  const analise = obterClassificacao(pontuacaoFinal);
+  const pontuacaoTotal = calcularPontuacao();
 
-  const handleSubmit = (e) => {
+  const obterClassificacao = (pontos) => {
+    if (pontos >= 13 && pontos <= 15) return 'Traumatismo Cranioencefálico (TCE) Leve';
+    if (pontos >= 9 && points <= 12) return 'Traumatismo Cranioencefálico (TCE) Moderado';
+    return 'Traumatismo Cranioencefálico (TCE) Grave';
+  };
+
+  const gerarTextoProntuario = (pontos, classif) => {
+    const tipo = isPediatrico ? 'Glasgow-Pediátrica' : 'Glasgow';
+    return `AVALIAÇÃO DE ESCALA DE COMA DE GLASGOW (${tipo})
+Paciente: ${iniciais} | Leito: ${leito}
+Pontuação Total: ${pontos}/15
+Classificação: ${classif}
+Conduta SAE: Monitorização neurológica rigorosa de pupilas e nível de consciência, manutenção da perfusão cerebral e cabeceira elevada a 30° conforme protocolo de neurointensivismo.`;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSalvar({
-      pacienteIniciais,
+    setMensagem('');
+    setErro('');
+
+    if (!iniciais || !leito) {
+      setErro('Iniciais e leito são obrigatórios.');
+      return;
+    }
+
+    const classificacao = obterClassificacao(pontuacaoTotal);
+    const textoProntuario = gerarTextoProntuario(pontuacaoTotal, classificacao);
+
+    const payload = {
+      pacienteId: pacienteId || null,
+      iniciais,
       leito,
-      tipoEscala: 'GLASGOW_P',
-      respostas: { ocular: Number(ocular), verbal: Number(verbal), motora: Number(motora), pupila: Number(pupila) },
-      pontuacaoTotal: pontuacaoFinal,
-      classificacaoRisco: analise.texto,
-      condutasSugeridas: analise.condutas,
-      observacoes
-    });
-    setPacienteIniciais(''); setLeito(''); setObservacoes('');
+      escala: 'GLASGOW',
+      pontuacao: {
+        total: pontuacaoTotal,
+        ocular: isPediatrico ? respostaOcularPed : ocular,
+        verbal: isPediatrico ? respostaVerbalPed : verbal,
+        motora: isPediatrico ? respostaMotoraPed : motora,
+        pediatrico: isPediatrico
+      },
+      classificacao,
+      condutasSae: [
+        'Monitorização neurológica rigorosa',
+        'Avaliação pupilar horária',
+        'Manutenção de cabeceira a 30°'
+      ],
+      textoProntuario
+    };
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/api/avaliacoes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMensagem('Avaliação de Glasgow salva com sucesso.');
+        if (onAvaliacaoSalva) onAvaliacaoSalva(data);
+      } else {
+        setErro(data.erro || 'Erro ao salvar avaliação.');
+      }
+    } catch (err) {
+      setErro('Erro de conexão ao salvar avaliação.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="card">
-      <h2>Escala de Coma de Glasgow com Resposta Pupilar (ECG-P)</h2>
+    <div className="form-escala-container">
+      <h2>Escala de Coma de Glasgow</h2>
+      
+      {erro && <div className="error-message">{erro}</div>}
+      {mensagem && <div className="success-message">{mensagem}</div>}
+
       <form onSubmit={handleSubmit}>
-        <div className="grid-2">
-          <div><label>Iniciais do Paciente:</label><input type="text" placeholder="Ex: M.S.A." value={pacienteIniciais} onChange={(e) => setPacienteIniciais(e.target.value)} required /></div>
-          <div><label>Leito:</label><input type="text" placeholder="Ex: Neuro-UTI 02" value={leito} onChange={(e) => setLeito(e.target.value)} required /></div>
-        </div>
-        <div className="form-group">
-          <label>Abertura Ocular (AO):</label>
-          <select value={ocular} onChange={(e) => setOcular(e.target.value)}>
-            <option value={4}>4 - Espontanea</option><option value={3}>3 - Ao estimulo verbal</option><option value={2}>2 - Ao estimulo doloroso</option><option value={1}>1 - Nenhuma</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Resposta Verbal (RV):</label>
-          <select value={verbal} onChange={(e) => setVerbal(e.target.value)}>
-            <option value={5}>5 - Orientado</option><option value={4}>4 - Confuso</option><option value={3}>3 - Palavras inapropriadas</option><option value={2}>2 - Sons incompreensiveis</option><option value={1}>1 - Nenhuma / Intubado</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Resposta Motora (RM):</label>
-          <select value={motora} onChange={(e) => setMotora(e.target.value)}>
-            <option value={6}>6 - Obedece a comandos</option><option value={5}>5 - Localiza estimulo doloroso</option><option value={4}>4 - Retirada inespecifica</option><option value={3}>3 - Flexao anormal (decorticacao)</option><option value={2}>2 - Extensao anormal (descerebracao)</option><option value={1}>1 - Nenhuma</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Reatividade Pupilar:</label>
-          <select value={pupila} onChange={(e) => setPupila(e.target.value)}>
-            <option value={0}>0 - Ambas reagem a luz</option><option value={1}>-1 - Apenas uma reage</option><option value={2}>-2 - Nenhuma reage</option>
-          </select>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Iniciais do Paciente</label>
+            <input
+              type="text"
+              value={iniciais}
+              onChange={(e) => setIniciais(e.target.value)}
+              placeholder="Ex: J.M.S."
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Leito</label>
+            <input
+              type="text"
+              value={leito}
+              onChange={(e) => setLeito(e.target.value)}
+              placeholder="Ex: UTI-01"
+              required
+            />
+          </div>
         </div>
 
-        <div className={`resultado-box ${analise.classe}`}>
-          <h3>Escore ECG-P: {pontuacaoFinal} pontos</h3>
-          <p><strong>Classificacao:</strong> {analise.texto}</p>
-          <ul style={{ marginLeft: '20px', marginTop: '5px' }}>{analise.condutas.map((c, i) => <li key={i}>{c}</li>)}</ul>
+        <div className="form-group checkbox-group">
+          <label>
+            <input
+              type="checkbox"
+              checked={isPediatrico}
+              onChange={(e) => setIsPediatrico(e.target.checked)}
+            />
+            Utilizar Escala Glasgow Pediátrica (Glasgow-P)
+          </label>
         </div>
 
-        <div className="form-group"><label>Observacoes:</label><textarea rows="2" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} /></div>
-        <button type="submit" className="btn-salvar">Salvar Avaliacao ECG-P</button>
+        {!isPediatrico ? (
+          <>
+            <div className="form-group">
+              <label>Abertura Ocular (AO)</label>
+              <select value={ocular} onChange={(e) => setOcular(Number(e.target.value))}>
+                <option value={4}>4 - Espontânea</option>
+                <option value={3}>3 - Ao chamado verbal</option>
+                <option value={2}>2 - À estimulação dolorosa</option>
+                <option value={1}>1 - Ausente</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Resposta Verbal (RV)</label>
+              <select value={verbal} onChange={(e) => setVerbal(Number(e.target.value))}>
+                <option value={5}>5 - Orientado</option>
+                <option value={4}>4 - Confuso</option>
+                <option value={3}>3 - Palavras inapropriadas</option>
+                <option value={2}>2 - Sons incompreensíveis</option>
+                <option value={1}>1 - Ausente</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Resposta Motora (RM)</label>
+              <select value={motora} onChange={(e) => setMotora(Number(e.target.value))}>
+                <option value={6}>6 - Obedece a comandos</option>
+                <option value={5}>5 - Localiza dor</option>
+                <option value={4}>4 - Flexão normal (retirada)</option>
+                <option value={3}>3 - Flexão anormal (decorticação)</option>
+                <option value={2}>2 - Extensão anormal (cerebração)</option>
+                <option value={1}>1 - Ausente</option>
+              </select>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="form-group">
+              <label>Abertura Ocular Pediátrica</label>
+              <select value={respostaOcularPed} onChange={(e) => setRespostaOcularPed(Number(e.target.value))}>
+                <option value={4}>4 - Espontânea</option>
+                <option value={3}>3 - À voz</option>
+                <option value={2}>2 - À dor</option>
+                <option value={1}>1 - Ausente</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Resposta Verbal Pediátrica</label>
+              <select value={respostaVerbalPed} onChange={(e) => setRespostaVerbalPed(Number(e.target.value))}>
+                <option value={5}>5 - Sorri, orientado a sons, interage</option>
+                <option value={4}>4 - Choro consolável, irritável</option>
+                <option value={3}>3 - Choro inapropriado / gemido</option>
+                <option value={2}>2 - Agitação / resposta inepta à dor</option>
+                <option value={1}>1 - Ausente</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Resposta Motora Pediátrica</label>
+              <select value={respostaMotoraPed} onChange={(e) => setRespostaMotoraPed(Number(e.target.value))}>
+                <option value={6}>6 - Movimentos espontâneos normais</option>
+                <option value={5}>5 - Retirada ao toque / localiza dor</option>
+                <option value={4}>4 - Retirada à dor (flexão normal)</option>
+                <option value={3}>3 - Decorticação à dor</option>
+                <option value={2}>2 - Descerebração à dor</option>
+                <option value={1}>1 - Ausente</option>
+              </select>
+            </div>
+          </>
+        )}
+
+        <div className="resultado-box">
+          <h3>Resultado: {pontuacaoTotal} / 15</h3>
+          <p><strong>Classificação:</strong> {obterClassificacao(pontuacaoTotal)}</p>
+        </div>
+
+        <button type="submit" className="btn-primary" disabled={loading}>
+          {loading ? 'Salvando...' : 'Salvar Avaliação'}
+        </button>
       </form>
     </div>
   );
 }
+
+export default FormGlasgow;

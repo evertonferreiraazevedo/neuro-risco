@@ -1,436 +1,466 @@
-/* ==========================================================================
-   RESET E VARIAVEIS DE COR (TEMA MEDICO / NEUROINTENSIVISMO)
-   ========================================================================== */
 :root {
-  --primaria: #0b4f6c;
-  --primaria-escura: #07374c;
-  --primaria-clara: #e0f2fe;
-  --fundo-pagina: #f1f5f9;
-  --fundo-card: #ffffff;
-  --texto-principal: #0f172a;
-  --texto-secundario: #475569;
-  --borda: #cbd5e1;
-  --borda-suave: #e2e8f0;
-  
-  --critico-bg: #fef2f2;
-  --critico-borda: #dc2626;
-  --critico-texto: #991b1b;
-
-  --alerta-bg: #fffbeb;
-  --alerta-borda: #d97706;
-  --alerta-texto: #92400e;
-
-  --seguro-bg: #f0fdf4;
-  --seguro-borda: #16a34a;
-  --seguro-texto: #166534;
-
-  --sombra-card: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --primary-color: #0f172a;
+  --secondary-color: #3b82f6;
+  --secondary-hover: #2563eb;
+  --accent-color: #06b6d4;
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-color: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --success-color: #22c55e;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-html, body {
-  width: 100%;
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background-color: var(--fundo-pagina);
-  color: var(--texto-principal);
-  -webkit-font-smoothing: antialiased;
 }
 
-/* ==========================================================================
-   CONTAINER PRINCIPAL (TELA TODA NO DESKTOP)
-   ========================================================================== */
-.container {
-  width: 100%;
-  max-width: 100%;
-  min-height: 100vh;
-  padding: 0 0 40px 0;
-}
-
-/* ==========================================================================
-   CABECALHO FIXO E MODERNO
-   ========================================================================== */
-header {
-  background: linear-gradient(135deg, var(--primaria) 0%, var(--primaria-escura) 100%);
+.app-header {
+  background-color: var(--primary-color);
   color: white;
-  padding: 18px 32px;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-header h1 {
+.header-brand h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  color: #f8fafc;
 }
 
-header p {
-  font-size: 0.9rem;
-  color: #bae6fd;
-  margin-top: 2px;
+.header-brand p {
+  font-size: 0.85rem;
+  color: #94a3b8;
 }
 
-.btn-sair {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 8px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.btn-sair:hover {
-  background-color: #dc2626;
-  border-color: #dc2626;
-}
-
-/* ==========================================================================
-   MENU DE ABAS DAS ESCALAS
-   ========================================================================== */
-.tabs {
+.header-user {
   display: flex;
-  gap: 12px;
-  padding: 0 32px;
-  margin-bottom: 24px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-.tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.tab-btn {
-  flex: 1;
-  min-width: 160px;
-  padding: 14px 18px;
-  border: 1px solid var(--borda);
-  background: var(--fundo-card);
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.95rem;
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   cursor: pointer;
-  color: var(--texto-secundario);
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
-.tab-btn:hover {
-  border-color: var(--primaria);
-  color: var(--primaria);
+.user-info:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-.tab-btn.ativa {
-  background-color: var(--primaria);
+.user-info span {
+  font-size: 0.9rem;
+}
+
+.btn-logout {
+  background-color: #ef4444;
   color: white;
-  border-color: var(--primaria);
-  box-shadow: 0 4px 10px rgba(11, 79, 108, 0.25);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
 }
 
-/* ==========================================================================
-   CARDS E FORMULARIOS (LAYOUT AMPLO)
-   ========================================================================== */
-.card {
-  background: var(--fundo-card);
-  padding: 28px;
-  border-radius: 12px;
-  box-shadow: var(--sombra-card);
-  margin: 0 32px 24px 32px;
-  border: 1px solid var(--borda-suave);
+.btn-logout:hover {
+  background-color: #dc2626;
 }
 
-.card h2 {
-  font-size: 1.25rem;
-  color: var(--primaria);
-  margin-bottom: 20px;
-  border-bottom: 2px solid var(--borda-suave);
-  padding-bottom: 12px;
+.paciente-ativo-banner {
+  background-color: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 0.75rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
 }
 
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-bottom: 18px;
+.btn-limpar-paciente {
+  background-color: transparent;
+  border: 1px solid #3b82f6;
+  color: #1d4ed8;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btn-limpar-paciente:hover {
+  background-color: #dbeafe;
+}
+
+.app-nav {
+  background-color: white;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+}
+
+.nav-btn {
+  background-color: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background-color: #f1f5f9;
+  color: var(--primary-color);
+}
+
+.nav-btn.active {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: white;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container {
+  background-color: var(--card-bg);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.login-container {
+  max-width: 400px;
+  margin: 5rem auto;
+}
+
+.login-container h2, .perfil-container h2, .paciente-container h2, .form-escala-container h2, .historico-container h2 {
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  font-size: 1.5rem;
 }
 
 .form-group {
-  margin-bottom: 18px;
-}
-
-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 6px;
-  font-size: 0.92rem;
-  color: var(--texto-principal);
-}
-
-input, select, textarea {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--borda);
-  border-radius: 8px;
-  font-size: 1rem;
-  background-color: #f8fafc;
-  color: var(--texto-principal);
-  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
-}
-
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--primaria);
-  background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(11, 79, 108, 0.15);
-}
-
-/* ==========================================================================
-   CAIXAS DE RESULTADO E CONDUTAS CLINICAS
-   ========================================================================== */
-.resultado-box {
-  background-color: #f8fafc;
-  border-left: 6px solid var(--primaria);
-  padding: 20px;
-  margin: 24px 0;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.resultado-box h3 {
-  font-size: 1.2rem;
-  margin-bottom: 6px;
-}
-
-.resultado-box ul {
-  margin-left: 20px;
-  margin-top: 10px;
-}
-
-.resultado-box li {
-  margin-bottom: 6px;
-  line-height: 1.4;
-}
-
-.resultado-box.alto-risco {
-  border-left-color: var(--critico-borda);
-  background-color: var(--critico-bg);
-  color: var(--critico-texto);
-}
-
-.resultado-box.moderado-risco {
-  border-left-color: var(--alerta-borda);
-  background-color: var(--alerta-bg);
-  color: var(--alerta-texto);
-}
-
-.resultado-box.baixo-risco {
-  border-left-color: var(--seguro-borda);
-  background-color: var(--seguro-bg);
-  color: var(--seguro-texto);
-}
-
-/* ==========================================================================
-   BOTOES PRINCIPAIS E DE ACAO
-   ========================================================================== */
-.btn-salvar {
-  background-color: var(--primaria);
-  color: white;
-  border: none;
-  padding: 15px 24px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  border-radius: 8px;
-  cursor: pointer;
-  width: 100%;
-  transition: background-color 0.2s, transform 0.1s;
-  box-shadow: 0 4px 10px rgba(11, 79, 108, 0.2);
-}
-
-.btn-salvar:hover {
-  background-color: var(--primaria-escura);
-}
-
-.btn-salvar:active {
-  transform: scale(0.99);
-}
-
-/* ==========================================================================
-   HISTORICO DE AVALIACOES
-   ========================================================================== */
-.item-historico {
-  border: 1px solid var(--borda-suave);
-  background-color: #fcfdfe;
-  padding: 18px;
-  border-radius: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 1.25rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.form-group input, .form-group select, .paciente-form input {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
   transition: border-color 0.2s;
 }
 
-.item-historico:hover {
-  border-color: var(--primaria);
+.form-group input:focus, .form-group select:focus, .paciente-form input:focus {
+  border-color: var(--secondary-color);
 }
 
-.acoes-historico {
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
+.input-disabled {
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  cursor: not-allowed;
 }
 
-.btn-copiar {
-  background-color: var(--primaria-clara);
-  color: var(--primaria-escura);
-  border: 1px solid #bae6fd;
-  padding: 10px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.88rem;
-  transition: all 0.2s;
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
 
-.btn-copiar:hover {
-  background-color: var(--primaria);
+.btn-primary {
+  background-color: var(--secondary-color);
   color: white;
-}
-
-.btn-excluir {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
-  padding: 10px 14px;
+  border: none;
+  padding: 0.75rem 1.5rem;
   border-radius: 6px;
-  cursor: pointer;
   font-weight: 600;
-  font-size: 0.88rem;
-  transition: all 0.2s;
-}
-
-.btn-excluir:hover {
-  background-color: #dc2626;
-  color: white;
-}
-
-/* ==========================================================================
-   TELA DE LOGIN CENTRALIZADA E RESPONSIVA
-   ========================================================================== */
-.login-container {
+  cursor: pointer;
   width: 100%;
-  min-height: 100vh;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-hover);
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.success-message {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.paciente-form {
+  background-color: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 1rem;
+}
+
+.pacientes-filtro {
+  display: flex;
   align-items: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.login-container header {
+.pacientes-filtro select {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.pacientes-table, .historico-table {
   width: 100%;
-  max-width: 460px;
-  border-radius: 12px 12px 0 0;
-  margin-bottom: 0;
-  padding: 24px;
+  border-collapse: collapse;
+  text-align: left;
+  margin-top: 1rem;
 }
 
-.login-container .card {
-  width: 100%;
-  max-width: 460px;
-  margin: 0;
-  border-radius: 0 0 12px 12px;
-  border-top: none;
+.pacientes-table th, .pacientes-table td, .historico-table th, .historico-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.link-alternar {
-  background: none;
+.pacientes-table th, .historico-table th {
+  background-color: #f1f5f9;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge.ativo {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge.alta {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-select {
+  background-color: #3b82f6;
+  color: white;
   border: none;
-  color: var(--primaria);
-  text-decoration: underline;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
   cursor: pointer;
-  margin-top: 18px;
-  display: block;
-  width: 100%;
-  text-align: center;
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
-/* ==========================================================================
-   RESPONSIVIDADE PARA CELULARES E TABLETS (TELAS MENORES QUE 768PX)
-   ========================================================================== */
-@media (max-width: 768px) {
-  header {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
+.btn-alta {
+  background-color: #f59e0b;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 
-  header h1 {
-    font-size: 1.25rem;
-  }
+.btn-reativar {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 
-  .tabs {
-    padding: 0 16px;
-    margin-bottom: 16px;
-    gap: 8px;
-  }
+.btn-historico {
+  background-color: #64748b;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 
-  .tab-btn {
-    min-width: 135px;
-    padding: 12px 14px;
-    font-size: 0.88rem;
-  }
+.resultado-box {
+  background-color: #f8fafc;
+  border: 1px solid var(--border-color);
+  padding: 1.25rem;
+  border-radius: 6px;
+  margin: 1.5rem 0;
+  text-align: center;
+}
 
-  .card {
-    margin: 0 12px 16px 12px;
-    padding: 18px;
-    border-radius: 10px;
-  }
+.resultado-box h3 {
+  color: var(--secondary-color);
+  margin-bottom: 0.5rem;
+}
 
-  .card h2 {
-    font-size: 1.1rem;
-  }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
 
-  /* Transforma grids de 2 colunas em 1 coluna no celular */
-  .grid-2 {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
 
-  /* Evita zoom automatico indesejado no iPhone ao clicar em inputs */
-  input, select, textarea {
-    font-size: 16px;
-    padding: 12px;
-  }
+.historico-list {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 
-  /* Ajusta os cards do historico para empilhar os botoes embaixo */
-  .item-historico {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.historico-item {
+  background-color: #f8fafc;
+  border: 1px solid var(--border-color);
+  padding: 1.25rem;
+  border-radius: 6px;
+}
 
-  .acoes-historico {
-    width: 100%;
-    margin-top: 8px;
-  }
+.historico-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
 
-  .btn-copiar, .btn-excluir {
-    flex: 1;
-    text-align: center;
-    padding: 12px;
-  }
+.prontuario-texto {
+  background-color: #1e293b;
+  color: #f8fafc;
+  padding: 1rem;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  margin: 1rem 0;
+}
+
+.btn-copy {
+  background-color: #059669;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.btn-close {
+  background-color: #64748b;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  width: 100%;
 }

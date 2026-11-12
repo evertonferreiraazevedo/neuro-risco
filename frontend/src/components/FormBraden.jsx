@@ -1,63 +1,209 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function FormBraden({ onSalvar }) {
-  const [pacienteIniciais, setPacienteIniciais] = useState('');
+function FormBraden({ token, pacienteSelecionado, onAvaliacaoSalva }) {
+  const [iniciais, setIniciais] = useState('');
   const [leito, setLeito] = useState('');
-  const [percepcao, setPercepcao] = useState(4);
+  const [pacienteId, setPacienteId] = useState('');
+  const [sensorial, setSensorial] = useState(4);
   const [umidade, setUmidade] = useState(4);
   const [atividade, setAtividade] = useState(4);
   const [mobilidade, setMobilidade] = useState(4);
   const [nutricao, setNutricao] = useState(4);
   const [friccao, setFriccao] = useState(3);
-  const [observacoes, setObservacoes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [mensagem, setMensagem] = useState('');
+  const [erro, setErro] = useState('');
 
-  const total = Number(percepcao) + Number(umidade) + Number(atividade) + Number(mobilidade) + Number(nutricao) + Number(friccao);
+  const API_URL = import.meta.env.VITE_API_URL || 'https://neurorisco-api.onrender.com';
 
-  const obterClassificacao = (nota) => {
-    if (nota <= 9) return { texto: 'Risco Muito Alto para Lesao por Pressao', classe: 'alto-risco', condutas: ['Mudanca de decubito rigorosa a cada 2h', 'Colchao pneumatico ou viscoelasticidade obrigatorio', 'Protecao de calcaneos e proeminencias osseas com hidrocoloide/espuma', 'Avaliacao nutricional e hidratacao da pele'] };
-    if (nota <= 12) return { texto: 'Risco Alto para Lesao por Pressao', classe: 'alto-risco', condutas: ['Mudanca de decubito a cada 2h', 'Utilizar superficies de redistribuicao de pressao', 'Manter pele limpa, seca e hidratada'] };
-    if (nota <= 14) return { texto: 'Risco Moderado', classe: 'moderado-risco', condutas: ['Mudanca de decubito programada', 'Inspecao diaria da pele nas proeminencias osseas'] };
-    return { texto: 'Risco Leve / Sem Risco (15-23 pts)', classe: 'baixo-risco', condutas: ['Manter cuidados preventivos padrao e reavaliar em 48h ou se piora neurologica'] };
+  useEffect(() => {
+    if (pacienteSelecionado) {
+      setIniciais(pacienteSelecionado.iniciais || '');
+      setLeito(pacienteSelecionado.leito || '');
+      setPacienteId(pacienteSelecionado._id || '');
+    }
+  }, [pacienteSelecionado]);
+
+  const pontuacaoTotal = Number(sensorial) + Number(umidade) + Number(atividade) + Number(mobilidade) + Number(nutricao) + Number(friccao);
+
+  const obterClassificacao = (pontos) => {
+    if (pontos <= 9) return 'Risco Muito Elevado';
+    if (pontos >= 10 && pontos <= 12) return 'Risco Elevado';
+    if (pontos >= 13 && pontos <= 14) return 'Risco Moderado';
+    if (pontos >= 15 && pontos <= 18) return 'Risco Baixo';
+    return 'Sem Risco Significativo';
   };
 
-  const analise = obterClassificacao(total);
+  const gerarTextoProntuario = (pontos, classif) => {
+    return `AVALIAÇÃO DE ESCALA DE BRADEN (RISCO DE ÚLCERA DE PRESSÃO)
+Paciente: ${iniciais} | Leito: ${leito}
+Pontuação Total: ${pontos}/23
+Classificação: ${classif}
+Conduta SAE: Mudança de decúbito rigorosa a cada 2 horas, uso de superfícies de suporte redutoras de pressão, hidratação cutânea e inspeção diária da integridade tissular.`;
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSalvar({
-      pacienteIniciais, leito, tipoEscala: 'BRADEN',
-      respostas: { percepcao, umidade, atividade, mobilidade, nutricao, friccao },
-      pontuacaoTotal: total, classificacaoRisco: analise.texto, condutasSugeridas: analise.condutas, observacoes
-    });
-    setPacienteIniciais(''); setLeito(''); setObservacoes('');
+    setMensagem('');
+    setErro('');
+
+    if (!iniciais || !leito) {
+      setErro('Iniciais e leito são obrigatórios.');
+      return;
+    }
+
+    const classificacao = obterClassificacao(pontuacaoTotal);
+    const textoProntuario = gerarTextoProntuario(pontuacaoTotal, classificacao);
+
+    const payload = {
+      pacienteId: pacienteId || null,
+      iniciais,
+      leito,
+      escala: 'BRADEN',
+      pontuacao: {
+        total: pontuacaoTotal,
+        sensorial: Number(sensorial),
+        umidade: Number(umidade),
+        atividade: Number(atividade),
+        mobilidade: Number(mobilidade),
+        nutricao: Number(nutricao),
+        friccao: Number(friccao)
+      },
+      classificacao,
+      condutasSae: [
+        'Mudança de decúbito rigorosa a cada 2h',
+        'Uso de colchão caixa-de-ovo ou pneumático',
+        'Hidratação da pele e proteção de proeminências ósseas'
+      ],
+      textoProntuario
+    };
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/api/avaliacoes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMensagem('Avaliação de Braden salva com sucesso.');
+        if (onAvaliacaoSalva) onAvaliacaoSalva(data);
+      } else {
+        setErro(data.erro || 'Erro ao salvar avaliação.');
+      }
+    } catch (err) {
+      setErro('Erro de conexão ao salvar avaliação.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="card">
-      <h2>Escala de Braden (Risco de Lesao por Pressao)</h2>
+    <div className="form-escala-container">
+      <h2>Escala de Braden (Risco de Lesão por Pressão)</h2>
+      
+      {erro && <div className="error-message">{erro}</div>}
+      {mensagem && <div className="success-message">{mensagem}</div>}
+
       <form onSubmit={handleSubmit}>
-        <div className="grid-2">
-          <div><label>Iniciais do Paciente:</label><input type="text" value={pacienteIniciais} onChange={(e) => setPacienteIniciais(e.target.value)} required /></div>
-          <div><label>Leito:</label><input type="text" value={leito} onChange={(e) => setLeito(e.target.value)} required /></div>
-        </div>
-        <div className="grid-2">
-          <div><label>Percepcao Sensorial:</label><select value={percepcao} onChange={(e) => setPercepcao(e.target.value)}><option value={1}>1 - Totalmente limitado</option><option value={2}>2 - Muito limitado</option><option value={3}>3 - Levemente limitado</option><option value={4}>4 - Nenhuma limitacao</option></select></div>
-          <div><label>Umidade:</label><select value={umidade} onChange={(e) => setUmidade(e.target.value)}><option value={1}>1 - Completamente molhada</option><option value={2}>2 - Muito molhada</option><option value={3}>3 - Ocasionalmente molhada</option><option value={4}>4 - Raramente molhada</option></select></div>
-          <div><label>Atividade:</label><select value={atividade} onChange={(e) => setAtividade(e.target.value)}><option value={1}>1 - Acamado</option><option value={2}>2 - Confinado a cadeira</option><option value={3}>3 - Anda ocasionalmente</option><option value={4}>4 - Anda frequentemente</option></select></div>
-          <div><label>Mobilidade:</label><select value={mobilidade} onChange={(e) => setMobilidade(e.target.value)}><option value={1}>1 - Totalmente imovel</option><option value={2}>2 - Bastante limitado</option><option value={3}>3 - Levemente limitado</option><option value={4}>4 - Nao apresenta limitacoes</option></select></div>
-          <div><label>Nutricao:</label><select value={nutricao} onChange={(e) => setNutricao(e.target.value)}><option value={1}>1 - Muito pobre</option><option value={2}>2 - Provavelmente inadequada</option><option value={3}>3 - Adequada</option><option value={4}>4 - Excelente</option></select></div>
-          <div><label>Friccao e Cisalhamento:</label><select value={friccao} onChange={(e) => setFriccao(e.target.value)}><option value={1}>1 - Problema</option><option value={2}>2 - Problema em potencial</option><option value={3}>3 - Nenhum problema</option></select></div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Iniciais do Paciente</label>
+            <input
+              type="text"
+              value={iniciais}
+              onChange={(e) => setIniciais(e.target.value)}
+              placeholder="Ex: J.M.S."
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Leito</label>
+            <input
+              type="text"
+              value={leito}
+              onChange={(e) => setLeito(e.target.value)}
+              placeholder="Ex: UTI-01"
+              required
+            />
+          </div>
         </div>
 
-        <div className={`resultado-box ${analise.classe}`}>
-          <h3>Escore Braden: {total} pontos</h3>
-          <p><strong>Classificacao:</strong> {analise.texto}</p>
-          <ul style={{ marginLeft: '20px', marginTop: '5px' }}>{analise.condutas.map((c, i) => <li key={i}>{c}</li>)}</ul>
+        <div className="form-group">
+          <label>Percepção Sensorial</label>
+          <select value={sensorial} onChange={(e) => setSensorial(Number(e.target.value))}>
+            <option value={4}>4 - Totalmente Limitada</option>
+            <option value={3}>3 - Muito Limitada</option>
+            <option value={2}>2 - Levemente Limitada</option>
+            <option value={1}>1 - Nenhuma Impairment / Total</option>
+          </select>
         </div>
 
-        <div className="form-group"><label>Observacoes:</label><textarea rows="2" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} /></div>
-        <button type="submit" className="btn-salvar">Salvar Avaliacao Braden</button>
+        <div className="form-group">
+          <label>Umidade</label>
+          <select value={umidade} onChange={(e) => setUmidade(Number(e.target.value))}>
+            <option value={4}>4 - Constantemente Úmida</option>
+            <option value={3}>3 - Frequentemente Úmida</option>
+            <option value={2}>2 - Ocasionalmente Úmida</option>
+            <option value={1}>1 - Raramente Úmida</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Atividade</label>
+          <select value={atividade} onChange={(e) => setAtividade(Number(e.target.value))}>
+            <option value={4}>4 - Acamado</option>
+            <option value={3}>3 - Confinado à cadeira</option>
+            <option value={2}>2 - Ocasionalmente deambula</option>
+            <option value={1}>1 - Deambula frequentemente</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Mobilidade</label>
+          <select value={mobilidade} onChange={(e) => setMobilidade(Number(e.target.value))}>
+            <option value={4}>4 - Totalmente Imóvel</option>
+            <option value={3}>3 - Muito Limitada</option>
+            <option value={2}>2 - Levemente Limitada</option>
+            <option value={1}>1 - Sem Limitações</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Nutrição</label>
+          <select value={nutricao} onChange={(e) => setNutricao(Number(e.target.value))}>
+            <option value={4}>4 - Muito Pobre / Nenhuma</option>
+            <option value={3}>3 - Provavelmente Inadequada</option>
+            <option value={2}>2 - Adequada</option>
+            <option value={1}>1 - Excelente</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Fricção e Cisalhamento</label>
+          <select value={friccao} onChange={(e) => setFriccao(Number(e.target.value))}>
+            <option value={3}>3 - Problema Presente</option>
+            <option value={2}>2 - Problema Potencial</option>
+            <option value={1}>1 - Nenhum Problema Aparente</option>
+          </select>
+        </div>
+
+        <div className="resultado-box">
+          <h3>Resultado: {pontuacaoTotal} / 23</h3>
+          <p><strong>Classificação:</strong> {obterClassificacao(pontuacaoTotal)}</p>
+        </div>
+
+        <button type="submit" className="btn-primary" disabled={loading}>
+          {loading ? 'Salvando...' : 'Salvar Avaliação'}
+        </button>
       </form>
     </div>
   );
 }
+
+export default FormBraden;
