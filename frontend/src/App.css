@@ -16,7 +16,7 @@
   --radius-md: 12px;
   --shadow-sm: 0 1px 3px 0 rgba(19, 78, 74, 0.08);
   --shadow-md: 0 4px 6px -1px rgba(19, 78, 74, 0.1), 0 2px 4px -2px rgba(19, 78, 74, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(19, 78, 74, 0.12), 0 4px 6px -4px rgba(19, 78, 74, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(19, 78, 74, 0.1), 0 4px 6px -4px rgba(19, 78, 74, 0.1);
 }
 
 body.dark-mode {
@@ -26,14 +26,14 @@ body.dark-mode {
   --accent-hover: #34d399;
   --bg-color: #080d0c;
   --card-bg: #111a18;
-  --text-color: #e5f3ee;
-  --text-muted: #94aaa2;
+  --text-color: #f0fdf4;
+  --text-muted: #9ca3af;
   --border-color: #293b35;
   --modal-bg: #17221e;
   --input-bg: #17221e;
   --table-hover: #1a2923;
   --badge-ativo-bg: #064e3b;
-  --badge-ativo-color: #6ee7b7;
+  --badge-ativo-color: #34d399;
 }
 
 body, .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container, .app-header, .app-nav, .nav-btn, .paciente-form, .pacientes-filtro, .pacientes-table, .historico-item, .modal-content, input, select, textarea {
@@ -63,7 +63,6 @@ body {
 /* ================================================= */
 /* CABEÇALHO MODERNO & REFINADO                      */
 /* ================================================= */
-
 .app-header {
   background: linear-gradient(135deg, #0b2925 0%, #134e4a 100%);
   color: #ffffff;
@@ -75,11 +74,6 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   z-index: 50;
-}
-
-body.dark-mode .app-header {
-  background: linear-gradient(135deg, #020605 0%, #101c18 100%);
-  border-bottom-color: #293b35;
 }
 
 .header-brand {
@@ -108,6 +102,12 @@ body.dark-mode .app-header {
   color: #a7d1c4;
   font-weight: 400;
   letter-spacing: 0.01em;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
 }
 
 .btn-theme-toggle {
@@ -185,7 +185,6 @@ body.dark-mode .app-header {
 /* ================================================= */
 /* BANNER DE PACIENTE ATIVO                          */
 /* ================================================= */
-
 .paciente-ativo-banner {
   background-color: #e8f5ef;
   border-bottom: 1px solid #b7ddcc;
@@ -215,23 +214,13 @@ body.dark-mode .paciente-ativo-banner {
   font-weight: 600;
 }
 
-body.dark-mode .btn-limpar-paciente {
-  border-color: #34d399;
-  color: #6ee7b7;
-}
-
 .btn-limpar-paciente:hover {
   background-color: #d1fae5;
-}
-
-body.dark-mode .btn-limpar-paciente:hover {
-  background-color: #174b38;
 }
 
 /* ================================================= */
 /* NAVEGAÇÃO ENTRE ABAS                              */
 /* ================================================= */
-
 .app-nav {
   background-color: var(--card-bg);
   display: flex;
@@ -257,7 +246,7 @@ body.dark-mode .btn-limpar-paciente:hover {
 .nav-btn:hover {
   background-color: var(--bg-color);
   color: var(--text-color);
-  border-color: var(--accent-color);
+  border-color: var(--text-muted);
 }
 
 .nav-btn.active {
@@ -287,7 +276,6 @@ body.dark-mode .btn-limpar-paciente:hover {
 /* ================================================= */
 /* CONTAINERS E FORMULÁRIOS                          */
 /* ================================================= */
-
 .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container {
   background-color: var(--card-bg);
   padding: 2.5rem;
@@ -303,12 +291,12 @@ body.dark-mode .btn-limpar-paciente:hover {
   padding: 3rem 2.5rem;
 }
 
-.login-container h1,
-.login-container h2,
+.login-container h1, 
+.login-container h2, 
 .login-container p,
-.perfil-container h2,
-.paciente-container h2,
-.form-escala-container h2,
+.perfil-container h2, 
+.paciente-container h2, 
+.form-escala-container h2, 
 .historico-container h2 {
   color: var(--text-color);
 }
@@ -355,7 +343,6 @@ body.dark-mode .btn-limpar-paciente:hover {
 /* ================================================= */
 /* CAMPO REFINADO DE OBSERVAÇÕES CLÍNICAS / PRONTUÁRIO */
 /* ================================================= */
-
 textarea, .form-group textarea, input[type="text"].prontuario-input {
   font-family: 'Fira Code', 'Courier New', Courier, monospace !important;
   font-size: 0.9rem !important;
@@ -411,12 +398,6 @@ textarea:focus, .form-group textarea:focus {
   font-weight: 500;
 }
 
-body.dark-mode .error-message {
-  background-color: #351719;
-  border-color: #7f2929;
-  color: #fca5a5;
-}
-
 .success-message {
   background-color: #ecfdf5;
   border: 1px solid #bbf7d0;
@@ -426,12 +407,6 @@ body.dark-mode .error-message {
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
   font-weight: 500;
-}
-
-body.dark-mode .success-message {
-  background-color: #102b22;
-  border-color: #20543f;
-  color: #86efac;
 }
 
 .paciente-form {
@@ -480,7 +455,6 @@ body.dark-mode .success-message {
 /* ================================================= */
 /* TABELAS E BOTÕES DE AÇÃO REFINADOS                */
 /* ================================================= */
-
 .table-responsive {
   overflow-x: auto;
   border-radius: var(--radius-sm);
@@ -538,8 +512,7 @@ body.dark-mode .success-message {
   border: 1px solid var(--border-color);
 }
 
-/* Grupo de Botões de Ação na Tabela */
-
+/* Grupo de Botões de Ação na Tabela (Limpo, Compacto e Alinhado) */
 .actions-cell {
   display: flex;
   align-items: center;
@@ -587,7 +560,6 @@ body.dark-mode .success-message {
 }
 
 /* Destaque específico para o botão de gráfico e PDF na tabela */
-
 .actions-cell button:nth-child(3) {
   background-color: #0284c7;
 }
@@ -596,36 +568,9 @@ body.dark-mode .success-message {
   background-color: #7c3aed;
 }
 
-/* Botão Copiar Prontuário */
-
-.btn-copiar-pill {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  border: 1.5px solid var(--border-color);
-  padding: 0.4rem 0.95rem;
-  border-radius: 50rem;
-  font-size: 0.775rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.btn-copiar-pill:hover {
-  background-color: var(--accent-color);
-  color: #ffffff;
-  border-color: var(--accent-color);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(15, 118, 110, 0.2);
-}
-
 /* ================================================= */
 /* MODAIS E CAIXAS DE RESULTADO                      */
 /* ================================================= */
-
 .resultado-box {
   background-color: var(--bg-color);
   border: 1.5px solid var(--border-color);
@@ -648,7 +593,7 @@ body.dark-mode .success-message {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(5, 20, 16, 0.7);
+  background-color: rgba(8, 13, 12, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;

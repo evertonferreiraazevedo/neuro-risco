@@ -9,6 +9,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
   doc.setTextColor(15, 23, 42);
+  doc.setCharSpace(0); // Garante espaçamento padrão entre caracteres
   doc.text('NeuroRisco - Prontuário de Evolução Neurológica (SAE)', 14, 18);
 
   doc.setFont('helvetica', 'normal');
@@ -49,11 +50,11 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     cursorY += 15;
   } else if (modoDetalhado) {
     // ==========================================
-    // MODO DETALHADO (Com normalização de texto e quebra lateral segura)
+    // MODO DETALHADO
     // ==========================================
     const larguraCaixa = larguraUtil; // 182mm
     const margemInternaX = 18;
-    const larguraTextoCaixa = larguraCaixa - 10; // 172mm estritos para o texto interno
+    const larguraTextoCaixa = larguraCaixa - 10; // 172mm estritos
 
     avaliacoes.forEach((av) => {
       let pontuacaoStr = av.pontuacao;
@@ -61,13 +62,14 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
       }
 
-      // Normaliza o texto removendo quebras duplicadas e caracteres que travam o jsPDF
+      // Normaliza o texto removendo quebras duplicadas e caracteres que afetam o render
       const textoBruto = av.textoProntuario ? av.textoProntuario.replace(/[\r\n]+/g, ' ').trim() : 'N/A';
       const textoSaeFormatado = `SAE: ${textoBruto}`;
 
-      // Configura fontes e quebra rigidamente cada bloco de texto
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
+      doc.setCharSpace(0); // Reseta espaçamento horizontal de caracteres para evitar estiramento
+      
       const linhaInfo1 = doc.splitTextToSize(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, larguraTextoCaixa);
       const linhaInfo2 = doc.splitTextToSize(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, larguraTextoCaixa);
       
@@ -75,7 +77,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.setFontSize(8.5);
       const linhasProntuario = doc.splitTextToSize(textoSaeFormatado, larguraTextoCaixa);
 
-      // Soma a altura exata com folga segura
       const alturaCabecalho = 8;
       const alturaInfo1 = linhaInfo1.length * 4.5;
       const alturaInfo2 = linhaInfo2.length * 4.5;
@@ -88,23 +89,25 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         cursorY = 20;
       }
 
-      // Desenha a caixa arredondada com a altura calculada
+      // Desenha a caixa arredondada
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(203, 213, 225);
       doc.roundedRect(14, cursorY, larguraCaixa, alturaBloco, 3, 3, 'FD');
 
-      // Título do item (Data e Escala)
+      // Título do item
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(37, 99, 235);
+      doc.setCharSpace(0);
       doc.text(`[${av.escala}] - ${new Date(av.createdAt).toLocaleString('pt-BR')}`, margemInternaX, cursorY + 7);
 
       let currentY = cursorY + 13;
 
-      // Renderiza as informações respeitando estritamente a largura máxima
+      // Renderiza as informações com espaçamento normalizado
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(15, 23, 42);
+      doc.setCharSpace(0);
       
       doc.text(linhaInfo1, margemInternaX, currentY);
       currentY += alturaInfo1 + 2;
@@ -115,9 +118,10 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
+      doc.setCharSpace(0);
       doc.text(linhasProntuario, margemInternaX, currentY);
 
-      cursorY += alturaBloco + 6; // Próximo bloco começa abaixo sem sobreposição
+      cursorY += alturaBloco + 6;
     });
   } else {
     // ==========================================
@@ -127,6 +131,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     const colWidth = { data: 34, escala: 28, pontuacao: 50, classificacao: 45 };
 
     doc.setFillColor(37, 99, 235);
+    doc.setCharSpace(0);
     doc.rect(14, cursorY, larguraUtil, 8, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
@@ -147,6 +152,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total:${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
       }
 
+      doc.setCharSpace(0);
       const colData = doc.splitTextToSize(new Date(av.createdAt).toLocaleString('pt-BR'), colWidth.data);
       const colEscala = doc.splitTextToSize(String(av.escala || ''), colWidth.escala);
       const colPontuacao = doc.splitTextToSize(String(pontuacaoStr), colWidth.pontuacao);
@@ -165,6 +171,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         doc.rect(14, cursorY, larguraUtil, alturaLinha, 'F');
       }
 
+      doc.setCharSpace(0);
       doc.text(colData, colX.data, cursorY + 5);
       doc.text(colEscala, colX.escala, cursorY + 5);
       doc.text(colPontuacao, colX.pontuacao, cursorY + 5);
@@ -189,6 +196,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(15, 23, 42);
+      doc.setCharSpace(0);
       doc.text('Evolução Gráfica', 14, cursorY);
       cursorY += 6;
 
@@ -205,6 +213,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
+    doc.setCharSpace(0);
     doc.text(`NeuroRisco - Sistema de Apoio à Decisão Clínica | Página ${i} de ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
   }
 
