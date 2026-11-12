@@ -1,0 +1,44 @@
+NeuroRisco
+-backend/
+    -middleware/
+        #auth.js https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/backend/middleware/auth.js
+    -models/
+        #Avaliacao.js https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/backend/models/Avaliacao.js
+        #paciente.js https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/backend/models/Usuario.js
+        #Usuario.js (falta desenvolver)
+    -node_modules/
+    -routes/
+    -.env
+    -package-lock.json
+    -package.json
+    -server.js https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/backend/server.js
+-frontend/
+    -node_modules/
+    -public/
+        (acho que coisa padrao do react)
+    -src/
+        -assets/
+            (acho que coisa padrao do react)
+        -components/
+            #FormBraden.jsx https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/frontend/src/components/FormBraden.jsx
+            #FormGlasgow.jsx https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/frontend/src/components/FormGlasgow.jsx
+            #FormMorse.jsx https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/frontend/src/components/FormMorse.jsx
+            #FormRass.jsx https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/frontend/src/components/FormRass.jsx
+            #Historico.jsx https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/frontend/src/components/Historico.jsx
+            #Login.jsx https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/frontend/src/components/Login.jsx
+            #Paciente.jsx (falta desenvolver)
+            #Perfil.jsx (falta desenvolver)
+        #App.css https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/frontend/src/App.css
+        #App.jsx https://github.com/evertonferreiraazevedo/neuro-risco/blob/main/frontend/src/App.jsx
+        #index.css(nunca mexi)
+        #main.js(nunca mexi)
+    -.env
+    -.gitignore
+    -.oxlintrc.json
+    -index.html
+    -package-lock.json
+    -package.json
+    -readme.md
+    -vite.config.js
+-.gitignore
+-readme.md

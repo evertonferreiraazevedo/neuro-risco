@@ -1,41 +1,436 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body { background-color: #f0f4f8; color: #1e293b; padding: 20px; }
-.container { max-width: 950px; margin: 0 auto; }
+/* ==========================================================================
+   RESET E VARIAVEIS DE COR (TEMA MEDICO / NEUROINTENSIVISMO)
+   ========================================================================== */
+:root {
+  --primaria: #0b4f6c;
+  --primaria-escura: #07374c;
+  --primaria-clara: #e0f2fe;
+  --fundo-pagina: #f1f5f9;
+  --fundo-card: #ffffff;
+  --texto-principal: #0f172a;
+  --texto-secundario: #475569;
+  --borda: #cbd5e1;
+  --borda-suave: #e2e8f0;
+  
+  --critico-bg: #fef2f2;
+  --critico-borda: #dc2626;
+  --critico-texto: #991b1b;
 
-/* Header e Navegacao */
-header { background-color: #0f4c81; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-header h1 { font-size: 1.4rem; }
-header p { font-size: 0.85rem; opacity: 0.9; }
-.btn-sair { background-color: #dc2626; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  --alerta-bg: #fffbeb;
+  --alerta-borda: #d97706;
+  --alerta-texto: #92400e;
 
-/* Abas das Escalas */
-.tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-.tab-btn { flex: 1; min-width: 140px; padding: 12px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; font-weight: 600; cursor: pointer; color: #475569; transition: 0.2s; }
-.tab-btn.ativa { background-color: #0f4c81; color: white; border-color: #0f4c81; }
+  --seguro-bg: #f0fdf4;
+  --seguro-borda: #16a34a;
+  --seguro-texto: #166534;
 
-/* Cards e Formularios */
-.card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 20px; }
-.card h2 { font-size: 1.15rem; color: #0f4c81; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-.form-group { margin-bottom: 15px; }
-label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
-input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; }
+  --sombra-card: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
 
-/* Caixas de Resultado */
-.resultado-box { background-color: #f8fafc; border-left: 5px solid #0f4c81; padding: 15px; margin: 20px 0; border-radius: 4px; }
-.resultado-box.alto-risco { border-left-color: #dc2626; background-color: #fef2f2; }
-.resultado-box.moderado-risco { border-left-color: #d97706; background-color: #fffbeb; }
-.resultado-box.baixo-risco { border-left-color: #16a34a; background-color: #f0fdf4; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
 
-.btn-salvar { background-color: #0f4c81; color: white; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; }
-.btn-salvar:hover { background-color: #0a355c; }
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--fundo-pagina);
+  color: var(--texto-principal);
+  -webkit-font-smoothing: antialiased;
+}
 
-/* Historico e Botoes de Acao */
-.item-historico { border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-.acoes-historico { display: flex; gap: 8px; }
-.btn-copiar { background-color: #e2e8f0; color: #1e293b; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
-.btn-excluir { background-color: #fee2e2; color: #b91c1c; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+/* ==========================================================================
+   CONTAINER PRINCIPAL (TELA TODA NO DESKTOP)
+   ========================================================================== */
+.container {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  padding: 0 0 40px 0;
+}
 
-/* Tela de Login */
-.login-container { max-width: 420px; margin: 50px auto; }
-.link-alternar { background: none; border: none; color: #0f4c81; text-decoration: underline; cursor: pointer; margin-top: 15px; display: block; width: 100%; text-align: center; font-size: 0.9rem; }
+/* ==========================================================================
+   CABECALHO FIXO E MODERNO
+   ========================================================================== */
+header {
+  background: linear-gradient(135deg, var(--primaria) 0%, var(--primaria-escura) 100%);
+  color: white;
+  padding: 18px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  margin-bottom: 24px;
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+header p {
+  font-size: 0.9rem;
+  color: #bae6fd;
+  margin-top: 2px;
+}
+
+.btn-sair {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-sair:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+/* ==========================================================================
+   MENU DE ABAS DAS ESCALAS
+   ========================================================================== */
+.tabs {
+  display: flex;
+  gap: 12px;
+  padding: 0 32px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 160px;
+  padding: 14px 18px;
+  border: 1px solid var(--borda);
+  background: var(--fundo-card);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  border-color: var(--primaria);
+  color: var(--primaria);
+}
+
+.tab-btn.ativa {
+  background-color: var(--primaria);
+  color: white;
+  border-color: var(--primaria);
+  box-shadow: 0 4px 10px rgba(11, 79, 108, 0.25);
+}
+
+/* ==========================================================================
+   CARDS E FORMULARIOS (LAYOUT AMPLO)
+   ========================================================================== */
+.card {
+  background: var(--fundo-card);
+  padding: 28px;
+  border-radius: 12px;
+  box-shadow: var(--sombra-card);
+  margin: 0 32px 24px 32px;
+  border: 1px solid var(--borda-suave);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  color: var(--primaria);
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--borda-suave);
+  padding-bottom: 12px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.92rem;
+  color: var(--texto-principal);
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f8fafc;
+  color: var(--texto-principal);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primaria);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(11, 79, 108, 0.15);
+}
+
+/* ==========================================================================
+   CAIXAS DE RESULTADO E CONDUTAS CLINICAS
+   ========================================================================== */
+.resultado-box {
+  background-color: #f8fafc;
+  border-left: 6px solid var(--primaria);
+  padding: 20px;
+  margin: 24px 0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.resultado-box h3 {
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+}
+
+.resultado-box ul {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+.resultado-box li {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.resultado-box.alto-risco {
+  border-left-color: var(--critico-borda);
+  background-color: var(--critico-bg);
+  color: var(--critico-texto);
+}
+
+.resultado-box.moderado-risco {
+  border-left-color: var(--alerta-borda);
+  background-color: var(--alerta-bg);
+  color: var(--alerta-texto);
+}
+
+.resultado-box.baixo-risco {
+  border-left-color: var(--seguro-borda);
+  background-color: var(--seguro-bg);
+  color: var(--seguro-texto);
+}
+
+/* ==========================================================================
+   BOTOES PRINCIPAIS E DE ACAO
+   ========================================================================== */
+.btn-salvar {
+  background-color: var(--primaria);
+  color: white;
+  border: none;
+  padding: 15px 24px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 4px 10px rgba(11, 79, 108, 0.2);
+}
+
+.btn-salvar:hover {
+  background-color: var(--primaria-escura);
+}
+
+.btn-salvar:active {
+  transform: scale(0.99);
+}
+
+/* ==========================================================================
+   HISTORICO DE AVALIACOES
+   ========================================================================== */
+.item-historico {
+  border: 1px solid var(--borda-suave);
+  background-color: #fcfdfe;
+  padding: 18px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  transition: border-color 0.2s;
+}
+
+.item-historico:hover {
+  border-color: var(--primaria);
+}
+
+.acoes-historico {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-copiar {
+  background-color: var(--primaria-clara);
+  color: var(--primaria-escura);
+  border: 1px solid #bae6fd;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.2s;
+}
+
+.btn-copiar:hover {
+  background-color: var(--primaria);
+  color: white;
+}
+
+.btn-excluir {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.2s;
+}
+
+.btn-excluir:hover {
+  background-color: #dc2626;
+  color: white;
+}
+
+/* ==========================================================================
+   TELA DE LOGIN CENTRALIZADA E RESPONSIVA
+   ========================================================================== */
+.login-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+}
+
+.login-container header {
+  width: 100%;
+  max-width: 460px;
+  border-radius: 12px 12px 0 0;
+  margin-bottom: 0;
+  padding: 24px;
+}
+
+.login-container .card {
+  width: 100%;
+  max-width: 460px;
+  margin: 0;
+  border-radius: 0 0 12px 12px;
+  border-top: none;
+}
+
+.link-alternar {
+  background: none;
+  border: none;
+  color: var(--primaria);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 18px;
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   RESPONSIVIDADE PARA CELULARES E TABLETS (TELAS MENORES QUE 768PX)
+   ========================================================================== */
+@media (max-width: 768px) {
+  header {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  header h1 {
+    font-size: 1.25rem;
+  }
+
+  .tabs {
+    padding: 0 16px;
+    margin-bottom: 16px;
+    gap: 8px;
+  }
+
+  .tab-btn {
+    min-width: 135px;
+    padding: 12px 14px;
+    font-size: 0.88rem;
+  }
+
+  .card {
+    margin: 0 12px 16px 12px;
+    padding: 18px;
+    border-radius: 10px;
+  }
+
+  .card h2 {
+    font-size: 1.1rem;
+  }
+
+  /* Transforma grids de 2 colunas em 1 coluna no celular */
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Evita zoom automatico indesejado no iPhone ao clicar em inputs */
+  input, select, textarea {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  /* Ajusta os cards do historico para empilhar os botoes embaixo */
+  .item-historico {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .acoes-historico {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .btn-copiar, .btn-excluir {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+  }
+}
