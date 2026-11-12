@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 
-export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario = {}, canvasElement = null) => {
+export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario = {}, canvasElement = null, modoDetalhado = false) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -37,8 +37,8 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   // Seção de Histórico de Avaliações
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('Histórico de Avaliações Clínicas e Escalas', 14, cursorY);
-  cursorY += 6;
+  doc.text(modoDetalhado ? 'Evolução Clínica Detalhada e Prontuários (SAE)' : 'Histórico de Avaliações Clínicas e Escalas', 14, cursorY);
+  cursorY += 8;
 
   if (!avaliacoes || avaliacoes.length === 0) {
     doc.setFont('helvetica', 'normal');
@@ -46,8 +46,49 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.setTextColor(100, 116, 139);
     doc.text('Nenhuma avaliação registrada para este paciente.', 14, cursorY + 4);
     cursorY += 15;
+  } else if (modoDetalhado) {
+    // MODO DETALHADO (Para o botão interno de Prontuários)
+    avaliacoes.forEach((av, index) => {
+      if (cursorY > 250) {
+        doc.addPage();
+        cursorY = 20;
+      }
+
+      // Caixa de fundo para cada avaliação
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(203, 213, 225);
+      doc.roundedRect(14, cursorY, pageWidth - 28, 38, 3, 3, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(37, 99, 235);
+      doc.text(`[${av.escala}] - ${new Date(av.createdAt).toLocaleString('pt-BR')}`, 18, cursorY + 7);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+
+      let pontuacaoStr = av.pontuacao;
+      if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
+        pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
+      }
+
+      doc.text(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, 18, cursorY + 14);
+      doc.text(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, 18, cursorY + 21);
+
+      // Texto do Prontuário / SAE
+      if (av.textoProntuario) {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105);
+        const linhasProntuario = doc.splitTextToSize(`SAE: ${av.textoProntuario}`, pageWidth - 40);
+        doc.text(linhasProntuario, 18, cursorY + 28);
+      }
+
+      cursorY += 44;
+    });
   } else {
-    // Cabeçalho da Tabela Manual
+    // MODO TABELA RESUMIDA (Para o botão externo da lista de pacientes)
     doc.setFillColor(37, 99, 235);
     doc.rect(14, cursorY, pageWidth - 28, 8, 'F');
     doc.setFont('helvetica', 'bold');
@@ -64,7 +105,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.setTextColor(15, 23, 42);
 
     avaliacoes.forEach((av, index) => {
-      // Se estourar a página, cria nova página
       if (cursorY > 270) {
         doc.addPage();
         cursorY = 20;
@@ -75,7 +115,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total: ${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
       }
 
-      // Linha alternada de fundo
       if (index % 2 === 0) {
         doc.setFillColor(248, 250, 252);
         doc.rect(14, cursorY, pageWidth - 28, 7, 'F');
@@ -97,7 +136,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     try {
       const imgData = canvasElement.toDataURL('image/png');
       
-      if (cursorY > 180) {
+      if (cursorY > 170) {
         doc.addPage();
         cursorY = 20;
       }
@@ -124,6 +163,5 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.text(`NeuroRisco - Sistema de Apoio à Decisão Clínica | Página ${i} de ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
   }
 
-  // Salva o arquivo PDF
   doc.save(`Prontuario_${paciente.iniciais.replace(/\s+/g, '_')}_${paciente.leito}.pdf`);
 };

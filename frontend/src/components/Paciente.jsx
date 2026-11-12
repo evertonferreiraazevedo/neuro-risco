@@ -293,7 +293,7 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
                           const dadosAvaliacoes = await response.json();
                           if (response.ok) {
                             const canvasEl = document.querySelector('canvas');
-                            exportarProntuarioPDF(pac, Array.isArray(dadosAvaliacoes) ? dadosAvaliacoes : [], usuario, canvasEl);
+                            exportarProntuarioPDF(pac, Array.isArray(dadosAvaliacoes) ? dadosAvaliacoes : [], usuario, canvasEl, false);
                           } else {
                             alert('Erro ao carregar avaliações para o PDF.');
                           }
@@ -387,14 +387,13 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
 
                       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
                         <button 
-                          className="btn-select" 
+                          className="btn-copiar-pill"
                           onClick={() => {
                             navigator.clipboard.writeText(av.textoProntuario || `Escala: ${av.escala} - Pontuação: ${JSON.stringify(av.pontuacao)}`);
-                            alert('Texto copiado para a área de transferência!');
+                            alert('Prontuário copiado para a área de transferência!');
                           }}
-                          style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
                         >
-                          📋 Copiar para Prontuário
+                          📋 Copiar Prontuário
                         </button>
                       </div>
                     </div>
@@ -407,12 +406,12 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
               <button 
                 onClick={() => {
                   const canvasEl = document.querySelector('canvas');
-                  exportarProntuarioPDF(pacienteHistoricoAtivo, historicoPacienteList, usuario, canvasEl);
+                  exportarProntuarioPDF(pacienteHistoricoAtivo, historicoPacienteList, usuario, canvasEl, true);
                 }}
                 className="btn-primary"
                 style={{ marginRight: '1rem', width: 'auto', display: 'inline-block' }}
               >
-                📥 Exportar Tudo em PDF
+                📥 Exportar Prontuário Detalhado em PDF
               </button>
               <button className="btn-logout" onClick={() => setModalHistoricoPaciente(false)} style={{ background: 'var(--text-muted)' }}>
                 Fechar
