@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario = {}, canvasElement = null, modoDetalhado = false) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const largurautil = pageWidth - 28; // Margem de 14 de cada lado
 
   // Cabeçalho institucional
   doc.setFont('helvetica', 'bold');
@@ -48,7 +49,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     cursorY += 15;
   } else if (modoDetalhado) {
     // ==========================================
-    // MODO DETALHADO (Com cálculo de altura dinâmico)
+    // MODO DETALHADO (Dinâmico)
     // ==========================================
     avaliacoes.forEach((av) => {
       let pontuacaoStr = av.pontuacao;
@@ -56,13 +57,11 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
       }
 
-      // Prepara o texto da SAE e calcula quantas linhas ele vai ocupar
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
       const textoSae = av.textoProntuario ? `SAE: ${av.textoProntuario}` : 'SAE: N/A';
       const linhasProntuario = doc.splitTextToSize(textoSae, pageWidth - 40);
 
-      // Altura total do bloco baseada na quantidade de linhas do texto
       const alturaBloco = 26 + (linhasProntuario.length * 4.5);
 
       if (cursorY + alturaBloco > 275) {
@@ -70,7 +69,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         cursorY = 20;
       }
 
-      // Caixa de fundo dimensionada dinamicamente
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(203, 213, 225);
       doc.roundedRect(14, cursorY, pageWidth - 28, alturaBloco, 3, 3, 'FD');
@@ -86,27 +84,30 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.text(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, 18, cursorY + 14);
       doc.text(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, 18, cursorY + 21);
 
-      // Renderiza o texto da SAE quebrado em várias linhas perfeitamente
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
       doc.text(linhasProntuario, 18, cursorY + 28);
 
-      cursorY += alturaBloco + 6; // Espaçamento seguro para o próximo bloco
+      cursorY += alturaBloco + 6;
     });
   } else {
     // ==========================================
-    // MODO TABELA RESUMIDA (Com quebra de texto nas colunas)
+    // MODO TABELA RESUMIDA (Com quebra de linha rigorosa por coluna)
     // ==========================================
+    // Definição das posições X e larguras máximas (Width) para cada coluna
+    const colX = { data: 16, escala: 52, pontuacao: 82, classificacao: 135 };
+    const colWidth = { data: 34, escala: 28, pontuacao: 50, classificacao: 45 };
+
     doc.setFillColor(37, 99, 235);
-    doc.rect(14, cursorY, pageWidth - 28, 8, 'F');
+    doc.rect(14, cursorY, largurautil, 8, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(255, 255, 255);
-    doc.text('Data / Hora', 17, cursorY + 5.5);
-    doc.text('Escala', 55, cursorY + 5.5);
-    doc.text('Pontuação', 85, cursorY + 5.5);
-    doc.text('Classificação', 140, cursorY + 5.5);
+    doc.text('Data / Hora', colX.data, cursorY + 5.5);
+    doc.text('Escala', colX.escala, cursorY + 5.5);
+    doc.text('Pontuação', colX.pontuacao, cursorY + 5.5);
+    doc.text('Classificação', colX.classificacao, cursorY + 5.5);
     cursorY += 8;
 
     doc.setFont('helvetica', 'normal');
@@ -119,30 +120,31 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total:${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
       }
 
-      // Quebra textos longos para caberem nas colunas sem estourar a lateral
-      const colData = doc.splitTextToSize(new Date(av.createdAt).toLocaleString('pt-BR'), 35);
-      const colEscala = doc.splitTextToSize(String(av.escala || ''), 25);
-      const colPontuacao = doc.splitTextToSize(String(pontuacaoStr), 50);
-      const colClassificacao = doc.splitTextToSize(String(av.classificacao || 'N/A'), 55);
+      // Quebra rigorosa de texto respeitando estritamente a largura de cada coluna
+      const colData = doc.splitTextToSize(new Date(av.createdAt).toLocaleString('pt-BR'), colWidth.data);
+      const colEscala = doc.splitTextToSize(String(av.escala || ''), colWidth.escala);
+      const colPontuacao = doc.splitTextToSize(String(pontuacaoStr), colWidth.pontuacao);
+      const colClassificacao = doc.splitTextToSize(String(av.classificacao || 'N/A'), colWidth.classificacao);
 
       const maxLinhas = Math.max(colData.length, colEscala.length, colPontuacao.length, colClassificacao.length);
-      const alturaLinha = maxLinhas * 5 + 3;
+      const alturaLinha = maxLinhas * 4.5 + 4;
 
       if (cursorY + alturaLinha > 275) {
         doc.addPage();
         cursorY = 20;
       }
 
-      // Linha alternada de fundo
+      // Linha alternada de fundo com altura dinâmica
       if (index % 2 === 0) {
         doc.setFillColor(248, 250, 252);
-        doc.rect(14, cursorY, pageWidth - 28, alturaLinha, 'F');
+        doc.rect(14, cursorY, largurautil, alturaLinha, 'F');
       }
 
-      doc.text(colData, 17, cursorY + 5);
-      doc.text(colEscala, 55, cursorY + 5);
-      doc.text(colPontuacao, 85, cursorY + 5);
-      doc.text(colClassificacao, 140, cursorY + 5);
+      // Renderiza cada coluna respeitando seu X e largura máxima
+      doc.text(colData, colX.data, cursorY + 5);
+      doc.text(colEscala, colX.escala, cursorY + 5);
+      doc.text(colPontuacao, colX.pontuacao, cursorY + 5);
+      doc.text(colClassificacao, colX.classificacao, cursorY + 5);
 
       cursorY += alturaLinha;
     });
