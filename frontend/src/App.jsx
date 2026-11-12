@@ -105,7 +105,7 @@ function App() {
       {/* Menu de Navegação Principal */}
       <nav className="app-nav">
         <button className={`nav-btn ${abaAtiva === 'pacientes' ? 'active' : ''}`} onClick={() => setAbaAtiva('pacientes')}>
-          Pacientes (LGPD)
+          Lista de Pacientes
         </button>
         <button className={`nav-btn ${abaAtiva === 'escalas' ? 'active' : ''}`} onClick={() => setAbaAtiva('escalas')}>
           Escalas Clínicas (SAE)

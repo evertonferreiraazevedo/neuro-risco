@@ -38,7 +38,7 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
   const [modalGrafico, setModalGrafico] = useState(false);
   const [pacienteGraficoAtivo, setPacienteGraficoAtivo] = useState(null);
   const [dadosEvolucao, setDadosEvolucao] = useState([]);
-  const [escalaGrafico, setEscalaGrafico] = useState('GLASGOW'); // <-- Declarado corretamente no topo
+  const [escalaGrafico, setEscalaGrafico] = useState('GLASGOW');
 
   const [modalHistoricoPaciente, setModalHistoricoPaciente] = useState(false);
   const [pacienteHistoricoAtivo, setPacienteHistoricoAtivo] = useState(null);
@@ -159,7 +159,7 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
     return matchStatus && matchBusca;
   });
 
-  // Dados filtrados para o gráfico
+  // Dados filtrados para o gráfico dinâmico
   const dadosFiltradosGrafico = dadosEvolucao.filter(av => av.escala === escalaGrafico);
   const chartDataDinamico = {
     labels: dadosFiltradosGrafico.map(av => new Date(av.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })),
@@ -182,7 +182,7 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
 
   return (
     <div className="paciente-container">
-      <h2>Gestão de Pacientes</h2>
+      <h2>Gestão de Pacientes (Conformidade LGPD)</h2>
 
       {erro && <div className="error-message">{erro}</div>}
       {sucesso && <div className="success-message">{sucesso}</div>}
@@ -287,7 +287,20 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
                     </button>
                     <button 
                       className="btn-historico" 
-                      onClick={() => exportarProntuarioPDF(pac, [], usuario)}
+                      onClick={async () => {
+                        try {
+                          const response = await apiFetch(`${API_URL}/api/avaliacoes/paciente/${pac._id}`);
+                          const dadosAvaliacoes = await response.json();
+                          if (response.ok) {
+                            const canvasEl = document.querySelector('canvas');
+                            exportarProntuarioPDF(pac, Array.isArray(dadosAvaliacoes) ? dadosAvaliacoes : [], usuario, canvasEl);
+                          } else {
+                            alert('Erro ao carregar avaliações para o PDF.');
+                          }
+                        } catch (err) {
+                          alert('Erro de conexão ao gerar PDF.');
+                        }
+                      }}
                       style={{ background: '#7c3aed' }}
                     >
                       📄 PDF
@@ -393,7 +406,8 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
             <div style={{ marginTop: '1.5rem', textAlign: 'right', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
               <button 
                 onClick={() => {
-                  exportarProntuarioPDF(pacienteHistoricoAtivo, historicoPacienteList, usuario);
+                  const canvasEl = document.querySelector('canvas');
+                  exportarProntuarioPDF(pacienteHistoricoAtivo, historicoPacienteList, usuario, canvasEl);
                 }}
                 className="btn-primary"
                 style={{ marginRight: '1rem', width: 'auto', display: 'inline-block' }}
