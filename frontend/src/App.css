@@ -1,29 +1,56 @@
 :root {
   --primary-color: #0f172a;
-  --secondary-color: #3b82f6;
-  --secondary-hover: #2563eb;
-  --accent-color: #06b6d4;
-  --bg-color: #f8fafc;
+  --primary-hover: #1e293b;
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --bg-color: #f1f5f9;
   --card-bg: #ffffff;
-  --text-color: #1e293b;
+  --text-color: #0f172a;
   --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  --success-color: #22c55e;
-  --error-color: #ef4444;
-  --warning-color: #f59e0b;
+  --border-color: #cbd5e1;
+  --success-color: #16a34a;
+  --error-color: #dc2626;
+  --warning-color: #d97706;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+}
+
+body.dark-mode {
+  --primary-color: #f8fafc;
+  --primary-hover: #e2e8f0;
+  --accent-color: #3b82f6;
+  --accent-hover: #60a5fa;
+  --bg-color: #0b0f19;
+  --card-bg: #111827;
+  --text-color: #f3f4f6;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --modal-bg: #1f2937;
+  --input-bg: #1f2937;
+  --table-hover: #1f2937;
+  --badge-ativo-bg: #064e3b;
+  --badge-ativo-color: #34d399;
+}
+
+body, .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container, .app-header, .app-nav, .nav-btn, .paciente-form, .pacientes-filtro, .pacientes-table, .historico-item, .modal-content, input, select {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
-  line-height: 1.5;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 .app-container {
@@ -33,24 +60,28 @@ body {
 }
 
 .app-header {
-  background-color: var(--primary-color);
-  color: white;
-  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 1.25rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .header-brand h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #f8fafc;
+  letter-spacing: -0.025em;
+  color: #ffffff;
 }
 
 .header-brand p {
   font-size: 0.85rem;
   color: #94a3b8;
+  font-weight: 400;
+  margin-top: 0.1rem;
 }
 
 .header-user {
@@ -64,54 +95,71 @@ body {
   flex-direction: column;
   align-items: flex-end;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease;
 }
 
 .user-info:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.12);
 }
 
 .user-info span {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  color: #f8fafc;
 }
 
 .btn-logout {
-  background-color: #ef4444;
+  background-color: #dc2626;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.5rem 1.15rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.2s;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .btn-logout:hover {
-  background-color: #dc2626;
+  background-color: #b91c1c;
+}
+
+.btn-logout:active {
+  transform: scale(0.98);
 }
 
 .paciente-ativo-banner {
   background-color: #eff6ff;
   border-bottom: 1px solid #bfdbfe;
   color: #1e40af;
-  padding: 0.75rem 2rem;
+  padding: 0.85rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.95rem;
+  font-size: 0.925rem;
+  font-weight: 500;
+}
+
+body.dark-mode .paciente-ativo-banner {
+  background-color: #172554;
+  color: #93c5fd;
+  border-bottom-color: #1e3a8a;
 }
 
 .btn-limpar-paciente {
   background-color: transparent;
-  border: 1px solid #3b82f6;
+  border: 1.5px solid #2563eb;
   color: #1d4ed8;
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .btn-limpar-paciente:hover {
@@ -119,40 +167,45 @@ body {
 }
 
 .app-nav {
-  background-color: white;
+  background-color: var(--card-bg);
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 2rem;
+  gap: 0.75rem;
+  padding: 0.85rem 2.5rem;
   border-bottom: 1px solid var(--border-color);
   overflow-x: auto;
+  box-shadow: var(--shadow-sm);
 }
 
 .nav-btn {
-  background-color: transparent;
-  border: none;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   color: var(--text-muted);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-sm);
   font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .nav-btn:hover {
-  background-color: #f1f5f9;
-  color: var(--primary-color);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-color: var(--text-muted);
 }
 
 .nav-btn.active {
-  background-color: var(--secondary-color);
+  background-color: var(--accent-color);
   color: white;
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .app-main {
   flex: 1;
-  padding: 2rem;
-  max-width: 1200px;
+  padding: 2.5rem;
+  max-width: 1300px;
   width: 100%;
   margin: 0 auto;
 }
@@ -160,7 +213,7 @@ body {
 .app-footer {
   text-align: center;
   padding: 1.5rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border-top: 1px solid var(--border-color);
   color: var(--text-muted);
   font-size: 0.85rem;
@@ -168,25 +221,29 @@ body {
 
 .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container {
   background-color: var(--card-bg);
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   margin-bottom: 2rem;
+  border: 1px solid var(--border-color);
 }
 
 .login-container {
-  max-width: 400px;
-  margin: 5rem auto;
+  max-width: 420px;
+  margin: 6rem auto;
+  padding: 3rem 2.5rem;
 }
 
 .login-container h2, .perfil-container h2, .paciente-container h2, .form-escala-container h2, .historico-container h2 {
-  margin-bottom: 1.5rem;
-  color: var(--primary-color);
-  font-size: 1.5rem;
+  margin-bottom: 1.75rem;
+  color: var(--text-color);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.35rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -194,131 +251,174 @@ body {
 
 .form-group label {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--text-color);
 }
 
 .form-group input, .form-group select, .paciente-form input {
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  transition: all 0.2s ease;
 }
 
 .form-group input:focus, .form-group select:focus, .paciente-form input:focus {
-  border-color: var(--secondary-color);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .input-disabled {
-  background-color: #f1f5f9;
-  color: var(--text-muted);
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .btn-primary {
-  background-color: var(--secondary-color);
+  background-color: var(--accent-color);
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--radius-sm);
   font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
   width: 100%;
-  transition: background-color 0.2s;
-  margin-top: 0.5rem;
+  transition: all 0.2s ease;
+  margin-top: 0.75rem;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .btn-primary:hover {
-  background-color: var(--secondary-hover);
+  background-color: var(--accent-hover);
 }
 
 .error-message {
-  background-color: #fee2e2;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
   color: #991b1b;
-  padding: 0.75rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.5rem;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .success-message {
-  background-color: #dcfce7;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
   color: #166534;
-  padding: 0.75rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.5rem;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .paciente-form {
-  background-color: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  margin-bottom: 2rem;
+  background-color: var(--bg-color);
+  padding: 1.75rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-color);
+  margin-bottom: 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
+}
+
+.paciente-form h3 {
+  color: var(--text-color);
+  font-size: 1.15rem;
+  font-weight: 600;
 }
 
 .pacientes-filtro {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+  background: var(--bg-color);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
 }
 
-.pacientes-filtro select {
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
+.pacientes-filtro label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-color);
+}
+
+.pacientes-filtro select, .pacientes-filtro input {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 0.9rem;
 }
 
 .table-responsive {
   overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
 }
 
 .pacientes-table, .historico-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  margin-top: 1rem;
+  background-color: var(--card-bg);
 }
 
 .pacientes-table th, .pacientes-table td, .historico-table th, .historico-table td {
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1.15rem;
   border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+  color: var(--text-color);
 }
 
 .pacientes-table th, .historico-table th {
-  background-color: #f1f5f9;
+  background-color: var(--bg-color);
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--text-color);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.pacientes-table tbody tr:hover, .historico-table tbody tr:hover {
+  background-color: var(--bg-color);
 }
 
 .badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.025em;
+  display: inline-block;
+  text-align: center;
 }
 
 .badge.ativo {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: var(--badge-ativo-bg);
+  color: var(--badge-ativo-color);
+  border: 1px solid var(--border-color);
 }
 
 .badge.alta {
-  background-color: #f1f5f9;
-  color: #64748b;
+  background-color: var(--bg-color);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
 }
 
 .actions-cell {
@@ -328,61 +428,63 @@ body {
 }
 
 .btn-select {
-  background-color: #3b82f6;
+  background-color: #2563eb;
   color: white;
   border: none;
-  padding: 0.35rem 0.75rem;
-  border-radius: 4px;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
 .btn-alta {
-  background-color: #f59e0b;
+  background-color: #d97706;
   color: white;
   border: none;
-  padding: 0.35rem 0.75rem;
-  border-radius: 4px;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
 .btn-reativar {
-  background-color: #10b981;
+  background-color: #16a34a;
   color: white;
   border: none;
-  padding: 0.35rem 0.75rem;
-  border-radius: 4px;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
 .btn-historico {
-  background-color: #64748b;
+  background-color: #475569;
   color: white;
   border: none;
-  padding: 0.35rem 0.75rem;
-  border-radius: 4px;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
 .resultado-box {
-  background-color: #f8fafc;
-  border: 1px solid var(--border-color);
-  padding: 1.25rem;
-  border-radius: 6px;
-  margin: 1.5rem 0;
+  background-color: var(--bg-color);
+  border: 1.5px solid var(--border-color);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  margin: 1.75rem 0;
   text-align: center;
 }
 
 .resultado-box h3 {
-  color: var(--secondary-color);
-  margin-bottom: 0.5rem;
+  color: var(--accent-color);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
 }
 
 .modal-overlay {
@@ -391,53 +493,60 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: 1.5rem;
 }
 
 .modal-content {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 800px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  padding: 2.5rem;
+  border-radius: var(--radius-md);
+  max-width: 850px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
 }
 
 .historico-list {
   margin-top: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .historico-item {
-  background-color: #f8fafc;
-  border: 1px solid var(--border-color);
-  padding: 1.25rem;
-  border-radius: 6px;
+  background-color: var(--bg-color);
+  border: 1.5px solid var(--border-color);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
 }
 
 .historico-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
 }
 
 .prontuario-texto {
-  background-color: #1e293b;
-  color: #f8fafc;
-  padding: 1rem;
-  border-radius: 6px;
-  font-family: monospace;
+  background-color: #020617;
+  color: #38bdf8;
+  padding: 1.15rem;
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.85rem;
+  line-height: 1.5;
   white-space: pre-wrap;
   margin: 1rem 0;
 }
@@ -447,20 +556,21 @@ body {
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.85rem;
 }
 
 .btn-close {
-  background-color: #64748b;
+  background-color: #475569;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
-  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  margin-top: 1.75rem;
   width: 100%;
 }

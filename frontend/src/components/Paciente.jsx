@@ -200,7 +200,7 @@ function Paciente({ token, apiFetch, onSelecionarPaciente, usuario }) {
     };
 
     return (
-      <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
+      <div style={{ background: 'var(--bg-color)', padding: '1rem', borderRadius: '6px', border: '1px solid var(--border-color)', marginBottom: '1.5rem' }}>
         <Line data={data} options={options} />
       </div>
     );
