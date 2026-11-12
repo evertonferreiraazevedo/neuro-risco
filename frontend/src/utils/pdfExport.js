@@ -49,11 +49,11 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     cursorY += 15;
   } else if (modoDetalhado) {
     // ==========================================
-    // MODO DETALHADO (Com quebra rigorosa e anti-sobreposição)
+    // MODO DETALHADO (Com normalização de texto e quebra lateral segura)
     // ==========================================
     const larguraCaixa = larguraUtil; // 182mm
     const margemInternaX = 18;
-    const larguraTextoCaixa = larguraCaixa - 8; // 174mm para o texto interno
+    const larguraTextoCaixa = larguraCaixa - 10; // 172mm estritos para o texto interno
 
     avaliacoes.forEach((av) => {
       let pontuacaoStr = av.pontuacao;
@@ -61,23 +61,26 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
       }
 
-      // Configura fontes para medição exata de linhas
+      // Normaliza o texto removendo quebras duplicadas e caracteres que travam o jsPDF
+      const textoBruto = av.textoProntuario ? av.textoProntuario.replace(/[\r\n]+/g, ' ').trim() : 'N/A';
+      const textoSaeFormatado = `SAE: ${textoBruto}`;
+
+      // Configura fontes e quebra rigidamente cada bloco de texto
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       const linhaInfo1 = doc.splitTextToSize(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, larguraTextoCaixa);
       const linhaInfo2 = doc.splitTextToSize(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, larguraTextoCaixa);
-
+      
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
-      const textoSae = av.textoProntuario ? `SAE: ${av.textoProntuario}` : 'SAE: N/A';
-      const linhasProntuario = doc.splitTextToSize(textoSae, larguraTextoCaixa);
+      const linhasProntuario = doc.splitTextToSize(textoSaeFormatado, larguraTextoCaixa);
 
-      // Soma dinâmica segura da altura de cada linha de texto
+      // Soma a altura exata com folga segura
       const alturaCabecalho = 8;
-      const alturaInfo1 = linhaInfo1.length * 4.2;
-      const alturaInfo2 = linhaInfo2.length * 4.2;
-      const alturaSae = linhasProntuario.length * 4.0;
-
+      const alturaInfo1 = linhaInfo1.length * 4.5;
+      const alturaInfo2 = linhaInfo2.length * 4.5;
+      const alturaSae = linhasProntuario.length * 4.2;
+      
       const alturaBloco = alturaCabecalho + alturaInfo1 + alturaInfo2 + alturaSae + 12;
 
       if (cursorY + alturaBloco > 275) {
@@ -85,7 +88,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         cursorY = 20;
       }
 
-      // Desenha a caixa arredondada
+      // Desenha a caixa arredondada com a altura calculada
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(203, 213, 225);
       doc.roundedRect(14, cursorY, larguraCaixa, alturaBloco, 3, 3, 'FD');
@@ -98,11 +101,11 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
 
       let currentY = cursorY + 13;
 
-      // Renderiza as informações com quebra lateral rigorosa
+      // Renderiza as informações respeitando estritamente a largura máxima
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(15, 23, 42);
-
+      
       doc.text(linhaInfo1, margemInternaX, currentY);
       currentY += alturaInfo1 + 2;
 
@@ -114,7 +117,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.setTextColor(71, 85, 105);
       doc.text(linhasProntuario, margemInternaX, currentY);
 
-      cursorY += alturaBloco + 6; // Espaçamento perfeito para o próximo bloco
+      cursorY += alturaBloco + 6; // Próximo bloco começa abaixo sem sobreposição
     });
   } else {
     // ==========================================
@@ -177,7 +180,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   if (canvasElement) {
     try {
       const imgData = canvasElement.toDataURL('image/png');
-
+      
       if (cursorY > 170) {
         doc.addPage();
         cursorY = 20;
