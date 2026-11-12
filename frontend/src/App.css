@@ -1,38 +1,39 @@
+
 :root {
-  --primary-color: #0f172a;
-  --primary-hover: #1e293b;
-  --accent-color: #2563eb;
-  --accent-hover: #1d4ed8;
-  --bg-color: #f8fafc;
+  --primary-color: #134e4a;
+  --primary-hover: #0f3d39;
+  --accent-color: #0f766e;
+  --accent-hover: #115e59;
+  --bg-color: #f4f9f7;
   --card-bg: #ffffff;
-  --text-color: #0f172a;
-  --text-muted: #475569;
-  --border-color: #cbd5e1;
+  --text-color: #16302e;
+  --text-muted: #647873;
+  --border-color: #d5e4df;
   --success-color: #16a34a;
   --error-color: #dc2626;
   --warning-color: #d97706;
   --radius-sm: 8px;
   --radius-md: 12px;
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+  --shadow-sm: 0 1px 3px 0 rgba(19, 78, 74, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(19, 78, 74, 0.1), 0 2px 4px -2px rgba(19, 78, 74, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(19, 78, 74, 0.12), 0 4px 6px -4px rgba(19, 78, 74, 0.1);
 }
 
 body.dark-mode {
-  --primary-color: #f8fafc;
-  --primary-hover: #e2e8f0;
-  --accent-color: #3b82f6;
-  --accent-hover: #60a5fa;
-  --bg-color: #0b0f19;
-  --card-bg: #111827;
-  --text-color: #f3f4f6;
-  --text-muted: #9ca3af;
-  --border-color: #374151;
-  --modal-bg: #1f2937;
-  --input-bg: #1f2937;
-  --table-hover: #1f2937;
+  --primary-color: #ecfdf5;
+  --primary-hover: #d1fae5;
+  --accent-color: #10b981;
+  --accent-hover: #34d399;
+  --bg-color: #080d0c;
+  --card-bg: #111a18;
+  --text-color: #e5f3ee;
+  --text-muted: #94aaa2;
+  --border-color: #293b35;
+  --modal-bg: #17221e;
+  --input-bg: #17221e;
+  --table-hover: #1a2923;
   --badge-ativo-bg: #064e3b;
-  --badge-ativo-color: #34d399;
+  --badge-ativo-color: #6ee7b7;
 }
 
 body, .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container, .app-header, .app-nav, .nav-btn, .paciente-form, .pacientes-filtro, .pacientes-table, .historico-item, .modal-content, input, select, textarea {
@@ -62,17 +63,23 @@ body {
 /* ================================================= */
 /* CABEÇALHO MODERNO & REFINADO                      */
 /* ================================================= */
+
 .app-header {
-  background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #0b2925 0%, #134e4a 100%);
   color: #ffffff;
   padding: 1.15rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 20px -2px rgba(8, 30, 26, 0.25);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   z-index: 50;
+}
+
+body.dark-mode .app-header {
+  background: linear-gradient(135deg, #020605 0%, #101c18 100%);
+  border-bottom-color: #293b35;
 }
 
 .header-brand {
@@ -98,21 +105,15 @@ body {
 
 .header-brand p {
   font-size: 0.825rem;
-  color: #94a3b8;
+  color: #a7d1c4;
   font-weight: 400;
   letter-spacing: 0.01em;
-}
-
-.header-user {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
 }
 
 .btn-theme-toggle {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #f8fafc;
+  color: #ecfdf5;
   padding: 0.5rem 0.9rem;
   border-radius: var(--radius-sm);
   font-size: 0.825rem;
@@ -155,7 +156,7 @@ body {
 
 .user-info span:last-child {
   font-size: 0.75rem;
-  color: #38bdf8;
+  color: #6ee7b7;
   font-weight: 500;
   letter-spacing: 0.02em;
 }
@@ -184,10 +185,11 @@ body {
 /* ================================================= */
 /* BANNER DE PACIENTE ATIVO                          */
 /* ================================================= */
+
 .paciente-ativo-banner {
-  background-color: #eff6ff;
-  border-bottom: 1px solid #bfdbfe;
-  color: #1e40af;
+  background-color: #e8f5ef;
+  border-bottom: 1px solid #b7ddcc;
+  color: #115e49;
   padding: 0.85rem 2.5rem;
   display: flex;
   justify-content: space-between;
@@ -197,15 +199,15 @@ body {
 }
 
 body.dark-mode .paciente-ativo-banner {
-  background-color: #172554;
-  color: #93c5fd;
-  border-bottom-color: #1e3a8a;
+  background-color: #102b22;
+  color: #86efc2;
+  border-bottom-color: #20543f;
 }
 
 .btn-limpar-paciente {
   background-color: transparent;
-  border: 1.5px solid #2563eb;
-  color: #1d4ed8;
+  border: 1.5px solid #0f766e;
+  color: #0f766e;
   padding: 0.35rem 0.85rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -213,13 +215,23 @@ body.dark-mode .paciente-ativo-banner {
   font-weight: 600;
 }
 
+body.dark-mode .btn-limpar-paciente {
+  border-color: #34d399;
+  color: #6ee7b7;
+}
+
 .btn-limpar-paciente:hover {
-  background-color: #dbeafe;
+  background-color: #d1fae5;
+}
+
+body.dark-mode .btn-limpar-paciente:hover {
+  background-color: #174b38;
 }
 
 /* ================================================= */
 /* NAVEGAÇÃO ENTRE ABAS                              */
 /* ================================================= */
+
 .app-nav {
   background-color: var(--card-bg);
   display: flex;
@@ -245,14 +257,14 @@ body.dark-mode .paciente-ativo-banner {
 .nav-btn:hover {
   background-color: var(--bg-color);
   color: var(--text-color);
-  border-color: var(--text-muted);
+  border-color: var(--accent-color);
 }
 
 .nav-btn.active {
   background-color: var(--accent-color);
   color: white;
   border-color: var(--accent-color);
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 2px 4px rgba(15, 118, 110, 0.2);
 }
 
 .app-main {
@@ -275,6 +287,7 @@ body.dark-mode .paciente-ativo-banner {
 /* ================================================= */
 /* CONTAINERS E FORMULÁRIOS                          */
 /* ================================================= */
+
 .login-container, .perfil-container, .paciente-container, .form-escala-container, .historico-container {
   background-color: var(--card-bg);
   padding: 2.5rem;
@@ -290,12 +303,12 @@ body.dark-mode .paciente-ativo-banner {
   padding: 3rem 2.5rem;
 }
 
-.login-container h1, 
-.login-container h2, 
+.login-container h1,
+.login-container h2,
 .login-container p,
-.perfil-container h2, 
-.paciente-container h2, 
-.form-escala-container h2, 
+.perfil-container h2,
+.paciente-container h2,
+.form-escala-container h2,
 .historico-container h2 {
   color: var(--text-color);
 }
@@ -336,12 +349,13 @@ body.dark-mode .paciente-ativo-banner {
 
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus, .paciente-form input:focus {
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
 }
 
 /* ================================================= */
 /* CAMPO REFINADO DE OBSERVAÇÕES CLÍNICAS / PRONTUÁRIO */
 /* ================================================= */
+
 textarea, .form-group textarea, input[type="text"].prontuario-input {
   font-family: 'Fira Code', 'Courier New', Courier, monospace !important;
   font-size: 0.9rem !important;
@@ -358,7 +372,7 @@ textarea, .form-group textarea, input[type="text"].prontuario-input {
 textarea:focus, .form-group textarea:focus {
   border-color: var(--accent-color) !important;
   background-color: var(--card-bg) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
 }
 
 .form-row {
@@ -379,7 +393,7 @@ textarea:focus, .form-group textarea:focus {
   width: 100%;
   transition: all 0.2s ease;
   margin-top: 0.75rem;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 2px 4px rgba(15, 118, 110, 0.2);
 }
 
 .btn-primary:hover {
@@ -397,8 +411,14 @@ textarea:focus, .form-group textarea:focus {
   font-weight: 500;
 }
 
+body.dark-mode .error-message {
+  background-color: #351719;
+  border-color: #7f2929;
+  color: #fca5a5;
+}
+
 .success-message {
-  background-color: #f0fdf4;
+  background-color: #ecfdf5;
   border: 1px solid #bbf7d0;
   color: #166534;
   padding: 0.85rem 1rem;
@@ -406,6 +426,12 @@ textarea:focus, .form-group textarea:focus {
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
   font-weight: 500;
+}
+
+body.dark-mode .success-message {
+  background-color: #102b22;
+  border-color: #20543f;
+  color: #86efac;
 }
 
 .paciente-form {
@@ -454,6 +480,7 @@ textarea:focus, .form-group textarea:focus {
 /* ================================================= */
 /* TABELAS E BOTÕES DE AÇÃO REFINADOS                */
 /* ================================================= */
+
 .table-responsive {
   overflow-x: auto;
   border-radius: var(--radius-sm);
@@ -511,7 +538,8 @@ textarea:focus, .form-group textarea:focus {
   border: 1px solid var(--border-color);
 }
 
-/* Grupo de Botões de Ação na Tabela (Limpo, Compacto e Alinhado) */
+/* Grupo de Botões de Ação na Tabela */
+
 .actions-cell {
   display: flex;
   align-items: center;
@@ -539,7 +567,7 @@ textarea:focus, .form-group textarea:focus {
 }
 
 .btn-select {
-  background-color: #2563eb;
+  background-color: #0f766e;
   color: white;
 }
 
@@ -554,11 +582,12 @@ textarea:focus, .form-group textarea:focus {
 }
 
 .btn-historico {
-  background-color: #6d00fa;
+  background-color: #475569;
   color: white;
 }
 
 /* Destaque específico para o botão de gráfico e PDF na tabela */
+
 .actions-cell button:nth-child(3) {
   background-color: #0284c7;
 }
@@ -567,7 +596,8 @@ textarea:focus, .form-group textarea:focus {
   background-color: #7c3aed;
 }
 
-/* Botão Copiar Prontuário em formato de pílula arredondada moderno */
+/* Botão Copiar Prontuário */
+
 .btn-copiar-pill {
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -589,12 +619,13 @@ textarea:focus, .form-group textarea:focus {
   color: #ffffff;
   border-color: var(--accent-color);
   transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 3px 6px rgba(15, 118, 110, 0.2);
 }
 
 /* ================================================= */
 /* MODAIS E CAIXAS DE RESULTADO                      */
 /* ================================================= */
+
 .resultado-box {
   background-color: var(--bg-color);
   border: 1.5px solid var(--border-color);
@@ -617,7 +648,7 @@ textarea:focus, .form-group textarea:focus {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.7);
+  background-color: rgba(5, 20, 16, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
