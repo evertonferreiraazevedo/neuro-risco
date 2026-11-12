@@ -3,7 +3,7 @@ import jsPDF from 'jspdf';
 export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario = {}, canvasElement = null, modoDetalhado = false) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const largurautil = pageWidth - 28; // Margem de 14 de cada lado
+  const larguraUtil = pageWidth - 28; // Margem de 14 de cada lado
 
   // Cabeçalho institucional
   doc.setFont('helvetica', 'bold');
@@ -49,58 +49,81 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     cursorY += 15;
   } else if (modoDetalhado) {
     // ==========================================
-    // MODO DETALHADO (Dinâmico)
+    // MODO DETALHADO (Com quebra rigorosa por largura máxima e cálculo dinâmico de altura)
     // ==========================================
+    const larguraCaixa = larguraUtil; // 182mm de largura útil
+    const margemInternaX = 18;
+
     avaliacoes.forEach((av) => {
       let pontuacaoStr = av.pontuacao;
       if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
         pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
       }
 
+      // Prepara e quebra cada linha de texto para nunca estourar para a lateral
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      const linhaInfo1 = doc.splitTextToSize(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, larguraCaixa - 8);
+      const linhaInfo2 = doc.splitTextToSize(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, larguraCaixa - 8);
+      
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
       const textoSae = av.textoProntuario ? `SAE: ${av.textoProntuario}` : 'SAE: N/A';
-      const linhasProntuario = doc.splitTextToSize(textoSae, pageWidth - 40);
+      const linhasProntuario = doc.splitTextToSize(textoSae, larguraCaixa - 8);
 
-      const alturaBloco = 26 + (linhasProntuario.length * 4.5);
+      // Altura total da caixa calculada dinamicamente com base no número de linhas de cada seção
+      const alturaCabecalhoItem = 10;
+      const alturaInfo1 = linhaInfo1.length * 4.5;
+      const alturaInfo2 = linhaInfo2.length * 4.5;
+      const alturaSae = linhasProntuario.length * 4;
+      
+      const alturaBloco = alturaCabecalhoItem + alturaInfo1 + alturaInfo2 + alturaSae + 10;
 
       if (cursorY + alturaBloco > 275) {
         doc.addPage();
         cursorY = 20;
       }
 
+      // Desenha a caixa de fundo com a altura dimensionada perfeitamente
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(203, 213, 225);
-      doc.roundedRect(14, cursorY, pageWidth - 28, alturaBloco, 3, 3, 'FD');
+      doc.roundedRect(14, cursorY, larguraCaixa, alturaBloco, 3, 3, 'FD');
 
+      // Título do item (Data e Escala)
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(37, 99, 235);
-      doc.text(`[${av.escala}] - ${new Date(av.createdAt).toLocaleString('pt-BR')}`, 18, cursorY + 7);
+      doc.text(`[${av.escala}] - ${new Date(av.createdAt).toLocaleString('pt-BR')}`, margemInternaX, cursorY + 7);
 
+      let currentY = cursorY + 14;
+
+      // Renderiza as linhas de informações com quebra lateral automática
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(15, 23, 42);
-      doc.text(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, 18, cursorY + 14);
-      doc.text(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, 18, cursorY + 21);
+      doc.text(linhaInfo1, margemInternaX, currentY);
+      currentY += alturaInfo1 + 2;
 
+      doc.text(linhaInfo2, margemInternaX, currentY);
+      currentY += alturaInfo2 + 2;
+
+      // Renderiza o texto da SAE respeitando estritamente a largura da caixa
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
-      doc.text(linhasProntuario, 18, cursorY + 28);
+      doc.text(linhasProntuario, margemInternaX, currentY);
 
-      cursorY += alturaBloco + 6;
+      cursorY += alturaBloco + 6; // Espaçamento seguro para a próxima caixa
     });
   } else {
     // ==========================================
-    // MODO TABELA RESUMIDA (Com quebra de linha rigorosa por coluna)
+    // MODO TABELA RESUMIDA
     // ==========================================
-    // Definição das posições X e larguras máximas (Width) para cada coluna
     const colX = { data: 16, escala: 52, pontuacao: 82, classificacao: 135 };
     const colWidth = { data: 34, escala: 28, pontuacao: 50, classificacao: 45 };
 
     doc.setFillColor(37, 99, 235);
-    doc.rect(14, cursorY, largurautil, 8, 'F');
+    doc.rect(14, cursorY, larguraUtil, 8, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(255, 255, 255);
@@ -120,7 +143,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total:${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
       }
 
-      // Quebra rigorosa de texto respeitando estritamente a largura de cada coluna
       const colData = doc.splitTextToSize(new Date(av.createdAt).toLocaleString('pt-BR'), colWidth.data);
       const colEscala = doc.splitTextToSize(String(av.escala || ''), colWidth.escala);
       const colPontuacao = doc.splitTextToSize(String(pontuacaoStr), colWidth.pontuacao);
@@ -134,13 +156,11 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         cursorY = 20;
       }
 
-      // Linha alternada de fundo com altura dinâmica
       if (index % 2 === 0) {
         doc.setFillColor(248, 250, 252);
-        doc.rect(14, cursorY, largurautil, alturaLinha, 'F');
+        doc.rect(14, cursorY, larguraUtil, alturaLinha, 'F');
       }
 
-      // Renderiza cada coluna respeitando seu X e largura máxima
       doc.text(colData, colX.data, cursorY + 5);
       doc.text(colEscala, colX.escala, cursorY + 5);
       doc.text(colPontuacao, colX.pontuacao, cursorY + 5);
@@ -156,7 +176,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   if (canvasElement) {
     try {
       const imgData = canvasElement.toDataURL('image/png');
-
+      
       if (cursorY > 170) {
         doc.addPage();
         cursorY = 20;
