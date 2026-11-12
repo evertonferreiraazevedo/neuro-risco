@@ -56,7 +56,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     cursorY += 15;
   } else if (modoDetalhado) {
     // ------------------------------------------
-    // MODO DETALHADO (Blocos limpos e legíveis)
+    // MODO DETALHADO (Blocos limpos)
     // ------------------------------------------
     avaliacoes.forEach((av) => {
       let pontuacaoStr = av.pontuacao;
@@ -67,7 +67,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       const dataFormatada = new Date(av.createdAt).toLocaleString('pt-BR');
       const linhasTexto = doc.splitTextToSize(av.textoProntuario ? `SAE: ${av.textoProntuario}` : 'SAE: N/A', larguraUtil - 10);
 
-      // Altura aproximada do bloco
       const alturaBloco = 28 + (linhasTexto.length * 4.5);
 
       if (cursorY + alturaBloco > 275) {
@@ -75,12 +74,10 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         cursorY = 20;
       }
 
-      // Caixa de fundo para cada registro
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(226, 232, 240);
       doc.roundedRect(margem, cursorY, larguraUtil, alturaBloco, 2, 2, 'FD');
 
-      // Conteúdo do bloco
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(37, 99, 235);
@@ -93,7 +90,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.text(`Classificação: ${av.classificacao || 'N/A'}`, margem + 5, cursorY + 20);
       doc.text(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, margem + 5, cursorY + 26);
 
-      // Texto SAE quebrado linha a linha com espaçamento natural
       let ySae = cursorY + 32;
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
@@ -107,9 +103,10 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     });
   } else {
     // ------------------------------------------
-    // MODO RESUMIDO (Tabela limpa e alinhada)
+    // MODO RESUMIDO (Tabela com quebra de colunas rígida)
     // ------------------------------------------
-    const colX = { data: 16, escala: 52, pontuacao: 82, classificacao: 135 };
+    const colX = { data: 16, escala: 50, pontuacao: 77, classificacao: 124 };
+    const colWidth = { data: 32, escala: 25, pontuacao: 45, classificacao: 68 };
 
     doc.setFillColor(37, 99, 235);
     doc.rect(margem, cursorY, larguraUtil, 7, 'F');
@@ -132,22 +129,40 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total:${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
       }
 
-      if (cursorY > 275) {
+      // Quebra de texto rigorosa por coluna para evitar vazamento lateral
+      const colData = doc.splitTextToSize(new Date(av.createdAt).toLocaleString('pt-BR'), colWidth.data);
+      const colEscala = doc.splitTextToSize(String(av.escala || ''), colWidth.escala);
+      const colPontuacao = doc.splitTextToSize(String(pontuacaoStr), colWidth.pontuacao);
+      const colClassificacao = doc.splitTextToSize(String(av.classificacao || 'N/A'), colWidth.classificacao);
+
+      const maxLinhas = Math.max(colData.length, colEscala.length, colPontuacao.length, colClassificacao.length);
+      const alturaLinha = Math.max(7, maxLinhas * 4 + 3);
+
+      if (cursorY + alturaLinha > 275) {
         doc.addPage();
         cursorY = 20;
       }
 
       if (index % 2 === 0) {
         doc.setFillColor(248, 250, 252);
-        doc.rect(margem, cursorY, larguraUtil, 7, 'F');
+        doc.rect(margem, cursorY, larguraUtil, alturaLinha, 'F');
       }
 
-      doc.text(new Date(av.createdAt).toLocaleString('pt-BR'), colX.data, cursorY + 5);
-      doc.text(String(av.escala || ''), colX.escala, cursorY + 5);
-      doc.text(String(pontuacaoStr), colX.pontuacao, cursorY + 5);
-      doc.text(String(av.classificacao || 'N/A'), colX.classificacao, cursorY + 5);
+      const textStartY = cursorY + 4.5;
 
-      cursorY += 7;
+      let yData = textStartY;
+      colData.forEach(l => { doc.text(l, colX.data, yData); yData += 4; });
+
+      let yEscala = textStartY;
+      colEscala.forEach(l => { doc.text(l, colX.escala, yEscala); yEscala += 4; });
+
+      let yPont = textStartY;
+      colPontuacao.forEach(l => { doc.text(l, colX.pontuacao, yPont); yPont += 4; });
+
+      let yClass = textStartY;
+      colClassificacao.forEach(l => { doc.text(l, colX.classificacao, yClass); yClass += 4; });
+
+      cursorY += alturaLinha;
     });
 
     cursorY += 10;
