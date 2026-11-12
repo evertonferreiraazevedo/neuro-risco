@@ -1,5 +1,4 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario = {}, canvasElement = null) => {
   const doc = new jsPDF();
@@ -7,7 +6,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
 
   // Cabeçalho institucional
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(15);
   doc.setTextColor(15, 23, 42);
   doc.text('NeuroRisco - Prontuário de Evolução Neurológica (SAE)', 14, 18);
 
@@ -20,20 +19,20 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   // Linha divisória
   doc.setDrawColor(203, 213, 225);
   doc.setLineWidth(0.5);
-  doc.line(14, 34, pageWidth - 14, 34);
+  doc.line(14, 33, pageWidth - 14, 33);
 
-  // Seção de Identificação do Paciente
+  // Identificação do Paciente
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(15, 23, 42);
-  doc.text('Identificação do Paciente', 14, 43);
+  doc.text('Identificação do Paciente', 14, 41);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text(`Iniciais: ${paciente.iniciais}   |   Leito: ${paciente.leito}   |   Status: ${paciente.status}`, 14, 50);
-  doc.text(`Diagnóstico / Hipótese Neurológica: ${paciente.diagnostico}`, 14, 57);
+  doc.text(`Iniciais: ${paciente.iniciais}   |   Leito: ${paciente.leito}   |   Status: ${paciente.status}`, 14, 48);
+  doc.text(`Diagnóstico / Hipótese Neurológica: ${paciente.diagnostico}`, 14, 55);
 
-  let cursorY = 67;
+  let cursorY = 65;
 
   // Seção de Histórico de Avaliações
   doc.setFont('helvetica', 'bold');
@@ -45,49 +44,60 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(100, 116, 139);
-    doc.text('Nenhuma avaliação registrada para este paciente.', 14, cursorY + 5);
+    doc.text('Nenhuma avaliação registrada para este paciente.', 14, cursorY + 4);
     cursorY += 15;
   } else {
-    const tableRows = avaliacoes.map((av) => {
-      let pontuacaoStr = av.pontuacao;
-      
-      // Tratamento robusto para formatar o objeto do Glasgow ou outras escalas
-      if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
-        const total = av.pontuacao.total ?? '-';
-        const ao = av.pontuacao.ao ?? '-';
-        const rv = av.pontuacao.rv ?? '-';
-        const rm = av.pontuacao.rm ?? '-';
-        pontuacaoStr = `Total: ${total} (AO: ${ao}, RV: ${rv}, RM: ${rm})`;
+    // Cabeçalho da Tabela Manual
+    doc.setFillColor(37, 99, 235);
+    doc.rect(14, cursorY, pageWidth - 28, 8, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Data / Hora', 17, cursorY + 5.5);
+    doc.text('Escala', 55, cursorY + 5.5);
+    doc.text('Pontuação', 82, cursorY + 5.5);
+    doc.text('Classificação', 130, cursorY + 5.5);
+    cursorY += 8;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(15, 23, 42);
+
+    avaliacoes.forEach((av, index) => {
+      // Se estourar a página, cria nova página
+      if (cursorY > 270) {
+        doc.addPage();
+        cursorY = 20;
       }
 
-      return [
-        new Date(av.createdAt).toLocaleString('pt-BR'),
-        av.escala,
-        pontuacaoStr,
-        av.classificacao || 'N/A',
-        `${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`
-      ];
+      let pontuacaoStr = av.pontuacao;
+      if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
+        pontuacaoStr = `Total: ${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
+      }
+
+      // Linha alternada de fundo
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(14, cursorY, pageWidth - 28, 7, 'F');
+      }
+
+      doc.text(new Date(av.createdAt).toLocaleString('pt-BR'), 17, cursorY + 5);
+      doc.text(String(av.escala || ''), 55, cursorY + 5);
+      doc.text(String(pontuacaoStr), 82, cursorY + 5);
+      doc.text(String(av.classificacao || 'N/A'), 130, cursorY + 5);
+
+      cursorY += 7;
     });
 
-    autoTable(doc, {
-      startY: cursorY,
-      head: [['Data / Hora', 'Escala', 'Pontuação', 'Classificação', 'Avaliador']],
-      body: tableRows,
-      theme: 'grid',
-      headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-      bodyStyles: { fontSize: 8.5, textColor: [15, 23, 42] },
-      margin: { left: 14, right: 14 }
-    });
-
-    cursorY = doc.lastAutoTable.finalY + 12;
+    cursorY += 10;
   }
 
-  // Se houver um gráfico visível na tela (Canvas), insere ele no PDF
+  // Se houver gráfico na tela (Canvas), insere no PDF
   if (canvasElement) {
     try {
       const imgData = canvasElement.toDataURL('image/png');
       
-      if (cursorY > 190) {
+      if (cursorY > 180) {
         doc.addPage();
         cursorY = 20;
       }
