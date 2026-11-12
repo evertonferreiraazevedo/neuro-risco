@@ -9,7 +9,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
   doc.setTextColor(15, 23, 42);
-  doc.setCharSpace(0); // Garante espaçamento padrão entre caracteres
   doc.text('NeuroRisco - Prontuário de Evolução Neurológica (SAE)', 14, 18);
 
   doc.setFont('helvetica', 'normal');
@@ -50,11 +49,11 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     cursorY += 15;
   } else if (modoDetalhado) {
     // ==========================================
-    // MODO DETALHADO
+    // MODO DETALHADO (Renderização linha a linha com espaçamento natural)
     // ==========================================
     const larguraCaixa = larguraUtil; // 182mm
     const margemInternaX = 18;
-    const larguraTextoCaixa = larguraCaixa - 10; // 172mm estritos
+    const larguraTextoCaixa = larguraCaixa - 10; // 172mm
 
     avaliacoes.forEach((av) => {
       let pontuacaoStr = av.pontuacao;
@@ -62,64 +61,68 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
       }
 
-      // Normaliza o texto removendo quebras duplicadas e caracteres que afetam o render
       const textoBruto = av.textoProntuario ? av.textoProntuario.replace(/[\r\n]+/g, ' ').trim() : 'N/A';
       const textoSaeFormatado = `SAE: ${textoBruto}`;
 
+      // Quebra de texto
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      doc.setCharSpace(0); // Reseta espaçamento horizontal de caracteres para evitar estiramento
-      
-      const linhaInfo1 = doc.splitTextToSize(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, larguraTextoCaixa);
-      const linhaInfo2 = doc.splitTextToSize(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, larguraTextoCaixa);
+      const linhasInfo1 = doc.splitTextToSize(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, larguraTextoCaixa);
+      const linhasInfo2 = doc.splitTextToSize(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, larguraTextoCaixa);
       
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
-      const linhasProntuario = doc.splitTextToSize(textoSaeFormatado, larguraTextoCaixa);
+      const linhasSae = doc.splitTextToSize(textoSaeFormatado, larguraTextoCaixa);
 
-      const alturaCabecalho = 8;
-      const alturaInfo1 = linhaInfo1.length * 4.5;
-      const alturaInfo2 = linhaInfo2.length * 4.5;
-      const alturaSae = linhasProntuario.length * 4.2;
-      
-      const alturaBloco = alturaCabecalho + alturaInfo1 + alturaInfo2 + alturaSae + 12;
+      // Altura total do bloco
+      const lineHeight = 4.5;
+      const alturaBloco = 12 + (linhasInfo1.length * lineHeight) + (linhasInfo2.length * lineHeight) + (linhasSae.length * lineHeight) + 10;
 
       if (cursorY + alturaBloco > 275) {
         doc.addPage();
         cursorY = 20;
       }
 
-      // Desenha a caixa arredondada
+      // Desenha a caixa de fundo
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(203, 213, 225);
       doc.roundedRect(14, cursorY, larguraCaixa, alturaBloco, 3, 3, 'FD');
 
-      // Título do item
+      // Título da Avaliação
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(37, 99, 235);
-      doc.setCharSpace(0);
       doc.text(`[${av.escala}] - ${new Date(av.createdAt).toLocaleString('pt-BR')}`, margemInternaX, cursorY + 7);
 
-      let currentY = cursorY + 13;
+      let currentY = cursorY + 14;
 
-      // Renderiza as informações com espaçamento normalizado
+      // Renderiza Info 1 linha por linha (evita esticar o texto)
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(15, 23, 42);
-      doc.setCharSpace(0);
-      
-      doc.text(linhaInfo1, margemInternaX, currentY);
-      currentY += alturaInfo1 + 2;
+      linhasInfo1.forEach((linha) => {
+        doc.text(linha, margemInternaX, currentY);
+        currentY += lineHeight;
+      });
 
-      doc.text(linhaInfo2, margemInternaX, currentY);
-      currentY += alturaInfo2 + 2;
+      currentY += 2;
 
+      // Renderiza Info 2 linha por linha
+      linhasInfo2.forEach((linha) => {
+        doc.text(linha, margemInternaX, currentY);
+        currentY += lineHeight;
+      });
+
+      currentY += 2;
+
+      // Renderiza SAE linha por linha
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
-      doc.setCharSpace(0);
-      doc.text(linhasProntuario, margemInternaX, currentY);
+      linhasSae.forEach((linha) => {
+        doc.text(linha, margemInternaX, currentY);
+        currentY += lineHeight;
+      });
 
       cursorY += alturaBloco + 6;
     });
@@ -131,7 +134,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     const colWidth = { data: 34, escala: 28, pontuacao: 50, classificacao: 45 };
 
     doc.setFillColor(37, 99, 235);
-    doc.setCharSpace(0);
     doc.rect(14, cursorY, larguraUtil, 8, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
@@ -152,7 +154,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total:${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
       }
 
-      doc.setCharSpace(0);
       const colData = doc.splitTextToSize(new Date(av.createdAt).toLocaleString('pt-BR'), colWidth.data);
       const colEscala = doc.splitTextToSize(String(av.escala || ''), colWidth.escala);
       const colPontuacao = doc.splitTextToSize(String(pontuacaoStr), colWidth.pontuacao);
@@ -171,11 +172,17 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         doc.rect(14, cursorY, larguraUtil, alturaLinha, 'F');
       }
 
-      doc.setCharSpace(0);
-      doc.text(colData, colX.data, cursorY + 5);
-      doc.text(colEscala, colX.escala, cursorY + 5);
-      doc.text(colPontuacao, colX.pontuacao, cursorY + 5);
-      doc.text(colClassificacao, colX.classificacao, cursorY + 5);
+      let yData = cursorY + 5;
+      colData.forEach(l => { doc.text(l, colX.data, yData); yData += 4.5; });
+
+      let yEscala = cursorY + 5;
+      colEscala.forEach(l => { doc.text(l, colX.escala, yEscala); yEscala += 4.5; });
+
+      let yPont = cursorY + 5;
+      colPontuacao.forEach(l => { doc.text(l, colX.pontuacao, yPont); yPont += 4.5; });
+
+      let yClass = cursorY + 5;
+      colClassificacao.forEach(l => { doc.text(l, colX.classificacao, yClass); yClass += 4.5; });
 
       cursorY += alturaLinha;
     });
@@ -196,7 +203,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(15, 23, 42);
-      doc.setCharSpace(0);
       doc.text('Evolução Gráfica', 14, cursorY);
       cursorY += 6;
 
@@ -213,7 +219,6 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.setCharSpace(0);
     doc.text(`NeuroRisco - Sistema de Apoio à Decisão Clínica | Página ${i} de ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
   }
 
