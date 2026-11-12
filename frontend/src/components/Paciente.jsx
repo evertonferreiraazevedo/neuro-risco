@@ -182,7 +182,7 @@ export default function Paciente({ token, apiFetch, usuario, onSelecionarPacient
 
   return (
     <div className="paciente-container">
-      <h2>Gestão de Pacientes (Conformidade LGPD)</h2>
+      <h2>Gestão de Pacientes</h2>
 
       {erro && <div className="error-message">{erro}</div>}
       {sucesso && <div className="success-message">{sucesso}</div>}

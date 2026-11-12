@@ -59,35 +59,75 @@ body {
   min-height: 100vh;
 }
 
+/* ================================================= */
+/* NOVO CABEÇALHO MODERNO & REFINADO                 */
+/* ================================================= */
 .app-header {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
   color: #ffffff;
-  padding: 1.25rem 2.5rem;
+  padding: 1.15rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: var(--shadow-md);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 50;
+}
+
+.header-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
 }
 
 .header-brand h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Ícone sutil de neurologia/cérebro no título */
+.header-brand h1::before {
+  content: "🧠";
+  font-size: 1.35rem;
 }
 
 .header-brand p {
-  font-size: 0.85rem;
+  font-size: 0.825rem;
   color: #94a3b8;
   font-weight: 400;
-  margin-top: 0.1rem;
+  letter-spacing: 0.01em;
 }
 
 .header-user {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
+}
+
+.btn-theme-toggle {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .user-info {
@@ -95,38 +135,56 @@ body {
   flex-direction: column;
   align-items: flex-end;
   cursor: pointer;
-  padding: 0.4rem 0.75rem;
+  padding: 0.35rem 0.85rem;
   border-radius: var(--radius-sm);
   background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
 }
 
 .user-info:hover {
   background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
 }
 
-.user-info span {
+.user-info span:first-child {
   font-size: 0.875rem;
-  color: #f8fafc;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.user-info span:last-child {
+  font-size: 0.75rem;
+  color: #38bdf8;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .btn-logout {
-  background-color: #dc2626;
-  color: white;
-  border: none;
-  padding: 0.5rem 1.15rem;
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.875rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  font-size: 0.825rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .btn-logout:hover {
-  background-color: #b91c1c;
+  background-color: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
 }
+
+/* ================================================= */
+/* FIM DO CABEÇALHO                                  */
+/* ================================================= */
 
 .paciente-ativo-banner {
   background-color: #eff6ff;
