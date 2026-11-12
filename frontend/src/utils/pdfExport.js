@@ -47,17 +47,33 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.text('Nenhuma avaliação registrada para este paciente.', 14, cursorY + 4);
     cursorY += 15;
   } else if (modoDetalhado) {
-    // MODO DETALHADO (Para o botão interno de Prontuários)
-    avaliacoes.forEach((av, index) => {
-      if (cursorY > 250) {
+    // ==========================================
+    // MODO DETALHADO (Com cálculo de altura dinâmico)
+    // ==========================================
+    avaliacoes.forEach((av) => {
+      let pontuacaoStr = av.pontuacao;
+      if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
+        pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
+      }
+
+      // Prepara o texto da SAE e calcula quantas linhas ele vai ocupar
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8.5);
+      const textoSae = av.textoProntuario ? `SAE: ${av.textoProntuario}` : 'SAE: N/A';
+      const linhasProntuario = doc.splitTextToSize(textoSae, pageWidth - 40);
+
+      // Altura total do bloco baseada na quantidade de linhas do texto
+      const alturaBloco = 26 + (linhasProntuario.length * 4.5);
+
+      if (cursorY + alturaBloco > 275) {
         doc.addPage();
         cursorY = 20;
       }
 
-      // Caixa de fundo para cada avaliação
+      // Caixa de fundo dimensionada dinamicamente
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(203, 213, 225);
-      doc.roundedRect(14, cursorY, pageWidth - 28, 38, 3, 3, 'FD');
+      doc.roundedRect(14, cursorY, pageWidth - 28, alturaBloco, 3, 3, 'FD');
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
@@ -67,28 +83,21 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(15, 23, 42);
-
-      let pontuacaoStr = av.pontuacao;
-      if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
-        pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
-      }
-
       doc.text(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, 18, cursorY + 14);
       doc.text(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, 18, cursorY + 21);
 
-      // Texto do Prontuário / SAE
-      if (av.textoProntuario) {
-        doc.setFont('helvetica', 'italic');
-        doc.setFontSize(8.5);
-        doc.setTextColor(71, 85, 105);
-        const linhasProntuario = doc.splitTextToSize(`SAE: ${av.textoProntuario}`, pageWidth - 40);
-        doc.text(linhasProntuario, 18, cursorY + 28);
-      }
+      // Renderiza o texto da SAE quebrado em várias linhas perfeitamente
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text(linhasProntuario, 18, cursorY + 28);
 
-      cursorY += 44;
+      cursorY += alturaBloco + 6; // Espaçamento seguro para o próximo bloco
     });
   } else {
-    // MODO TABELA RESUMIDA (Para o botão externo da lista de pacientes)
+    // ==========================================
+    // MODO TABELA RESUMIDA (Com quebra de texto nas colunas)
+    // ==========================================
     doc.setFillColor(37, 99, 235);
     doc.rect(14, cursorY, pageWidth - 28, 8, 'F');
     doc.setFont('helvetica', 'bold');
@@ -96,8 +105,8 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.setTextColor(255, 255, 255);
     doc.text('Data / Hora', 17, cursorY + 5.5);
     doc.text('Escala', 55, cursorY + 5.5);
-    doc.text('Pontuação', 82, cursorY + 5.5);
-    doc.text('Classificação', 130, cursorY + 5.5);
+    doc.text('Pontuação', 85, cursorY + 5.5);
+    doc.text('Classificação', 140, cursorY + 5.5);
     cursorY += 8;
 
     doc.setFont('helvetica', 'normal');
@@ -105,27 +114,37 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     doc.setTextColor(15, 23, 42);
 
     avaliacoes.forEach((av, index) => {
-      if (cursorY > 270) {
+      let pontuacaoStr = av.pontuacao;
+      if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
+        pontuacaoStr = `Total:${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
+      }
+
+      // Quebra textos longos para caberem nas colunas sem estourar a lateral
+      const colData = doc.splitTextToSize(new Date(av.createdAt).toLocaleString('pt-BR'), 35);
+      const colEscala = doc.splitTextToSize(String(av.escala || ''), 25);
+      const colPontuacao = doc.splitTextToSize(String(pontuacaoStr), 50);
+      const colClassificacao = doc.splitTextToSize(String(av.classificacao || 'N/A'), 55);
+
+      const maxLinhas = Math.max(colData.length, colEscala.length, colPontuacao.length, colClassificacao.length);
+      const alturaLinha = maxLinhas * 5 + 3;
+
+      if (cursorY + alturaLinha > 275) {
         doc.addPage();
         cursorY = 20;
       }
 
-      let pontuacaoStr = av.pontuacao;
-      if (typeof av.pontuacao === 'object' && av.pontuacao !== null) {
-        pontuacaoStr = `Total: ${av.pontuacao.total} (AO:${av.pontuacao.ao} RV:${av.pontuacao.rv} RM:${av.pontuacao.rm})`;
-      }
-
+      // Linha alternada de fundo
       if (index % 2 === 0) {
         doc.setFillColor(248, 250, 252);
-        doc.rect(14, cursorY, pageWidth - 28, 7, 'F');
+        doc.rect(14, cursorY, pageWidth - 28, alturaLinha, 'F');
       }
 
-      doc.text(new Date(av.createdAt).toLocaleString('pt-BR'), 17, cursorY + 5);
-      doc.text(String(av.escala || ''), 55, cursorY + 5);
-      doc.text(String(pontuacaoStr), 82, cursorY + 5);
-      doc.text(String(av.classificacao || 'N/A'), 130, cursorY + 5);
+      doc.text(colData, 17, cursorY + 5);
+      doc.text(colEscala, 55, cursorY + 5);
+      doc.text(colPontuacao, 85, cursorY + 5);
+      doc.text(colClassificacao, 140, cursorY + 5);
 
-      cursorY += 7;
+      cursorY += alturaLinha;
     });
 
     cursorY += 10;
@@ -135,7 +154,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   if (canvasElement) {
     try {
       const imgData = canvasElement.toDataURL('image/png');
-      
+
       if (cursorY > 170) {
         doc.addPage();
         cursorY = 20;
