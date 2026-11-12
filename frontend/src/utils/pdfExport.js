@@ -49,10 +49,11 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
     cursorY += 15;
   } else if (modoDetalhado) {
     // ==========================================
-    // MODO DETALHADO (Com quebra rigorosa por largura máxima e cálculo dinâmico de altura)
+    // MODO DETALHADO (Com quebra rigorosa e anti-sobreposição)
     // ==========================================
-    const larguraCaixa = larguraUtil; // 182mm de largura útil
+    const larguraCaixa = larguraUtil; // 182mm
     const margemInternaX = 18;
+    const larguraTextoCaixa = larguraCaixa - 8; // 174mm para o texto interno
 
     avaliacoes.forEach((av) => {
       let pontuacaoStr = av.pontuacao;
@@ -60,31 +61,31 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
         pontuacaoStr = `Total: ${av.pontuacao.total} (AO: ${av.pontuacao.ao}, RV: ${av.pontuacao.rv}, RM: ${av.pontuacao.rm})`;
       }
 
-      // Prepara e quebra cada linha de texto para nunca estourar para a lateral
+      // Configura fontes para medição exata de linhas
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      const linhaInfo1 = doc.splitTextToSize(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, larguraCaixa - 8);
-      const linhaInfo2 = doc.splitTextToSize(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, larguraCaixa - 8);
-      
+      const linhaInfo1 = doc.splitTextToSize(`Pontuação: ${pontuacaoStr}  |  Classificação: ${av.classificacao || 'N/A'}`, larguraTextoCaixa);
+      const linhaInfo2 = doc.splitTextToSize(`Avaliador: ${av.avaliadorNome || 'N/A'} (COREN: ${av.avaliadorCoren || 'N/A'})`, larguraTextoCaixa);
+
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
       const textoSae = av.textoProntuario ? `SAE: ${av.textoProntuario}` : 'SAE: N/A';
-      const linhasProntuario = doc.splitTextToSize(textoSae, larguraCaixa - 8);
+      const linhasProntuario = doc.splitTextToSize(textoSae, larguraTextoCaixa);
 
-      // Altura total da caixa calculada dinamicamente com base no número de linhas de cada seção
-      const alturaCabecalhoItem = 10;
-      const alturaInfo1 = linhaInfo1.length * 4.5;
-      const alturaInfo2 = linhaInfo2.length * 4.5;
-      const alturaSae = linhasProntuario.length * 4;
-      
-      const alturaBloco = alturaCabecalhoItem + alturaInfo1 + alturaInfo2 + alturaSae + 10;
+      // Soma dinâmica segura da altura de cada linha de texto
+      const alturaCabecalho = 8;
+      const alturaInfo1 = linhaInfo1.length * 4.2;
+      const alturaInfo2 = linhaInfo2.length * 4.2;
+      const alturaSae = linhasProntuario.length * 4.0;
+
+      const alturaBloco = alturaCabecalho + alturaInfo1 + alturaInfo2 + alturaSae + 12;
 
       if (cursorY + alturaBloco > 275) {
         doc.addPage();
         cursorY = 20;
       }
 
-      // Desenha a caixa de fundo com a altura dimensionada perfeitamente
+      // Desenha a caixa arredondada
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(203, 213, 225);
       doc.roundedRect(14, cursorY, larguraCaixa, alturaBloco, 3, 3, 'FD');
@@ -95,25 +96,25 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
       doc.setTextColor(37, 99, 235);
       doc.text(`[${av.escala}] - ${new Date(av.createdAt).toLocaleString('pt-BR')}`, margemInternaX, cursorY + 7);
 
-      let currentY = cursorY + 14;
+      let currentY = cursorY + 13;
 
-      // Renderiza as linhas de informações com quebra lateral automática
+      // Renderiza as informações com quebra lateral rigorosa
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(15, 23, 42);
+
       doc.text(linhaInfo1, margemInternaX, currentY);
       currentY += alturaInfo1 + 2;
 
       doc.text(linhaInfo2, margemInternaX, currentY);
       currentY += alturaInfo2 + 2;
 
-      // Renderiza o texto da SAE respeitando estritamente a largura da caixa
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
       doc.text(linhasProntuario, margemInternaX, currentY);
 
-      cursorY += alturaBloco + 6; // Espaçamento seguro para a próxima caixa
+      cursorY += alturaBloco + 6; // Espaçamento perfeito para o próximo bloco
     });
   } else {
     // ==========================================
@@ -176,7 +177,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   if (canvasElement) {
     try {
       const imgData = canvasElement.toDataURL('image/png');
-      
+
       if (cursorY > 170) {
         doc.addPage();
         cursorY = 20;
