@@ -66,7 +66,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
 
       const dataFormatada = new Date(av.createdAt).toLocaleString('pt-BR');
       const linhasTexto = doc.splitTextToSize(av.textoProntuario ? `SAE: ${av.textoProntuario}` : 'SAE: N/A', larguraUtil - 10);
-
+      
       const alturaBloco = 28 + (linhasTexto.length * 4.5);
 
       if (cursorY + alturaBloco > 275) {
@@ -174,7 +174,7 @@ export const exportarProntuarioPDF = async (paciente, avaliacoes = [], usuario =
   if (canvasElement) {
     try {
       const imgData = canvasElement.toDataURL('image/png');
-
+      
       if (cursorY > 170) {
         doc.addPage();
         cursorY = 20;
