@@ -41,6 +41,22 @@ export default function Historico({ token, apiFetch }) {
     return pontuacao;
   };
 
+  // Função para definir a cor do badge de acordo com a gravidade da classificação
+  const obterEstiloBadgeClassificacao = (classificacao = '') => {
+    const texto = classificacao.toLowerCase();
+    
+    // Vermelho (Alto risco / Grave / Coma)
+    if (texto.includes('alto') || texto.includes('grave') || texto.includes('severo') || texto.includes('elevado') || texto.includes('crítico')) {
+      return { backgroundColor: '#fee2e2', color: '#b91c1c', borderColor: '#fca5a5' };
+    }
+    // Amarelo / Laranja (Risco moderado / Médio)
+    if (texto.includes('moderado') || texto.includes('médio') || texto.includes('risco')) {
+      return { backgroundColor: '#fef3c7', color: '#b45309', borderColor: '#fcd34d' };
+    }
+    // Verde (Baixo risco / Alerta / Normal)
+    return { backgroundColor: '#dcfce7', color: '#166534', borderColor: '#86efac' };
+  };
+
   const avaliacoesFiltradas = avaliacoes.filter(av => {
     const matchEscala = filtroEscala ? av.escala === filtroEscala : true;
     const matchLeito = buscaLeito ? (av.leito && av.leito.toLowerCase().includes(buscaLeito.toLowerCase())) || (av.iniciais && av.iniciais.toLowerCase().includes(buscaLeito.toLowerCase())) : true;
@@ -97,6 +113,7 @@ export default function Historico({ token, apiFetch }) {
             <tbody>
               {avaliacoesFiltradas.map((av) => {
                 const pontuacaoFormatada = formatarPontuacao(av.pontuacao);
+                const estiloBadge = obterEstiloBadgeClassificacao(av.classificacao);
                 return (
                   <tr key={av._id || Math.random()}>
                     <td>{new Date(av.createdAt).toLocaleString('pt-BR')}</td>
@@ -104,21 +121,20 @@ export default function Historico({ token, apiFetch }) {
                     <td>{av.iniciais || 'N/A'} ({av.leito || 'N/A'})</td>
                     <td>{pontuacaoFormatada}</td>
                     <td>
-                      <span className="badge" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)', border: '1px solid var(--border-color)' }}>
+                      <span className="badge" style={{ ...estiloBadge, border: `1px solid ${estiloBadge.borderColor}` }}>
                         {av.classificacao || 'N/A'}
                       </span>
                     </td>
                     <td>{av.avaliadorNome || 'Profissional'} (COREN: {av.avaliadorCoren || 'N/A'})</td>
                     <td>
                       <button 
-                        className="btn-select"
+                        className="btn-copiar-pill"
                         onClick={() => {
                           navigator.clipboard.writeText(av.textoProntuario || `Escala: ${av.escala} - Pontuação: ${JSON.stringify(av.pontuacao)}`);
                           alert('Prontuário copiado para a área de transferência!');
                         }}
-                        style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
                       >
-                        📋 Copiar
+                        📋 Copiar Prontuário
                       </button>
                     </td>
                   </tr>
